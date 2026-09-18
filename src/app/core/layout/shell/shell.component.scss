@@ -1,0 +1,19 @@
+.ih-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ih-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.ih-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: #e8eaf3;
+}

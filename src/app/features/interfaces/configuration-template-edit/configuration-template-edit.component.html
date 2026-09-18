@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Configuration Template</h1>
+      <a class="page-subtitle" [routerLink]="['/interfaces', interfaceId]">{{ interfaceName() }}</a>
+    </div>
+    <div class="form-actions">
+      <button mat-button [routerLink]="['/interfaces', interfaceId]">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="save()">
+        <mat-icon>save</mat-icon>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    @for (entry of entries.controls; track entry; let entryIndex = $index) {
+      <div class="config-entry-row" [formGroup]="entry">
+        <mat-form-field appearance="outline">
+          <mat-label>Key</mat-label>
+          <input matInput formControlName="key" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="type">
+            @for (valueType of configValueTypes; track valueType) {
+              <mat-option [value]="valueType">{{ valueType }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Default Value</mat-label>
+          <input matInput formControlName="defaultValue" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Expression</mat-label>
+          <input matInput formControlName="expression" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Description</mat-label>
+          <input matInput formControlName="description" />
+        </mat-form-field>
+
+        <button mat-icon-button color="warn" type="button" (click)="removeEntry(entryIndex)" aria-label="Remove entry">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    }
+
+    <button mat-stroked-button color="primary" type="button" (click)="addEntry()">
+      <mat-icon>add</mat-icon>
+      Add Entry
+    </button>
+  </div>
+</div>

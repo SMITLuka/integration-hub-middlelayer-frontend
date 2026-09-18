@@ -1,0 +1,56 @@
+@if (detail(); as d) {
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ d.interfaceName }}</h1>
+        <a class="page-subtitle" [routerLink]="['/companies', companyId]">{{ companyName() }}</a>
+      </div>
+      <div class="form-actions">
+        <button mat-button [routerLink]="['/companies', companyId]">
+          <mat-icon>arrow_back</mat-icon>
+          Back
+        </button>
+        <button mat-stroked-button color="warn" (click)="onDeleteMapping()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    @for (section of d.sections; track section.sectionId) {
+      <div class="card">
+        <h2 class="card-section-title">{{ section.name }}</h2>
+        <table class="row-table">
+          <tbody>
+            @for (row of section.rows; track row.templateRowId) {
+              <tr>
+                <td class="row-key">{{ row.descriptor }}</td>
+                <td class="row-value">
+                  <div>{{ row.effectiveValue || '—' }}</div>
+                  @if (row.sourceLevel === 'TEMPLATE') {
+                    <div class="row-caption">From Template</div>
+                  }
+                </td>
+                <td class="row-actions">
+                  @if (row.sourceLevel === 'TEMPLATE') {
+                    <button mat-icon-button (click)="onEditRow(row)" aria-label="Edit">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  } @else {
+                    <button mat-icon-button color="warn" (click)="onDeleteRow(row)" aria-label="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr class="row-empty">
+                <td colspan="3">No rows defined.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

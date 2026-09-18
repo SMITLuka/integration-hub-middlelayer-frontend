@@ -1,0 +1,41 @@
+<table class="kv-table">
+  <tbody>
+    @for (row of rows; track row.key) {
+      <tr>
+        <td class="kv-key">{{ row.key }}</td>
+        <td class="kv-value">
+          <div>{{ row.value }}</div>
+          @if (row.caption) {
+            <div class="kv-caption">{{ row.caption }}</div>
+          }
+        </td>
+        <td class="kv-actions">
+          @if (row.caption) {
+            <button mat-icon-button (click)="onEditClick(row)" aria-label="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+          } @else {
+            <button mat-icon-button color="warn" (click)="onDeleteClick(row)" aria-label="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </tr>
+    } @empty {
+      <tr class="kv-empty-row">
+        <td colspan="3">No entries.</td>
+      </tr>
+    }
+  </tbody>
+</table>
+
+@if (allowAdd) {
+  <div class="kv-add">
+    <input type="text" class="kv-add-input" [placeholder]="addKeyLabel" [(ngModel)]="newKey" />
+    <input type="text" class="kv-add-input" [placeholder]="addValueLabel" [(ngModel)]="newValue" />
+    <button mat-stroked-button color="primary" (click)="onAddClick()">
+      <mat-icon>add</mat-icon>
+      Add
+    </button>
+  </div>
+}

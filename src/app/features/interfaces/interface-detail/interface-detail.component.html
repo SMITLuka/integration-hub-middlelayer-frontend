@@ -1,0 +1,85 @@
+@if (detail(); as d) {
+  <div class="page">
+    <div class="page-header">
+      <h1 class="page-title">{{ d.name }}</h1>
+      <div class="form-actions">
+        <button mat-button routerLink="/interfaces">
+          <mat-icon>arrow_back</mat-icon>
+          Back
+        </button>
+        <button mat-stroked-button color="primary" [routerLink]="['/interfaces', interfaceId, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field-grid">
+        <div><span class="page-subtitle">DMS-to-Middleware URL</span><div>{{ d.dmsToMiddlewareUrl || '—' }}</div></div>
+        <div><span class="page-subtitle">OEM-to-Middleware URL</span><div>{{ d.oemToMiddlewareUrl || '—' }}</div></div>
+        <div><span class="page-subtitle">Middleware-to-OEM URL</span><div>{{ d.middlewareToOemUrl || '—' }}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-section-title">Additional Data</h2>
+      <app-key-value-editor
+        [rows]="additionalData()"
+        [allowAdd]="true"
+        (add)="onAdditionalDataAdd($event)"
+        (delete)="onAdditionalDataDelete($event)"
+      ></app-key-value-editor>
+    </div>
+
+    <div class="card">
+      <div class="page-header">
+        <h2 class="card-section-title">Mappings</h2>
+        <div class="form-actions">
+          @if (!d.hasMappingTemplate) {
+            <span class="badge badge-warn">Template not Defined</span>
+          }
+          <button mat-stroked-button color="primary" [routerLink]="['/interfaces', interfaceId, 'mapping-template']">
+            <mat-icon>schema</mat-icon>
+            Mapping Template
+          </button>
+        </div>
+      </div>
+      @if (d.hasMappingTemplate) {
+        <app-data-table
+          [columns]="usageColumns"
+          [rows]="d.usages.mappingUsages"
+          [showSearch]="false"
+          [showPagination]="false"
+          emptyMessage="No mappings found."
+          (rowClick)="onUsageRowClick($event)"
+        ></app-data-table>
+      }
+    </div>
+
+    <div class="card">
+      <div class="page-header">
+        <h2 class="card-section-title">Configurations</h2>
+        <div class="form-actions">
+          @if (!d.hasConfigurationTemplate) {
+            <span class="badge badge-warn">Template not Defined</span>
+          }
+          <button mat-stroked-button color="primary" [routerLink]="['/interfaces', interfaceId, 'configuration-template']">
+            <mat-icon>tune</mat-icon>
+            Configuration Template
+          </button>
+        </div>
+      </div>
+      @if (d.hasConfigurationTemplate) {
+        <app-data-table
+          [columns]="usageColumns"
+          [rows]="d.usages.configurationUsages"
+          [showSearch]="false"
+          [showPagination]="false"
+          emptyMessage="No configurations found."
+          (rowClick)="onUsageRowClick($event)"
+        ></app-data-table>
+      }
+    </div>
+  </div>
+}

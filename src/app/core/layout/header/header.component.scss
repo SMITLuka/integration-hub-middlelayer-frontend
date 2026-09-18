@@ -1,0 +1,63 @@
+$primary: #333694;
+$primary-mid: #5557a5;
+$primary-light: #6c6fb2;
+$white: #ffffff;
+
+.ih-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  height: 60px;
+  background: $white;
+  border-bottom: 3px solid $primary-mid;
+  box-shadow: 0 2px 8px rgba($primary, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.title-main {
+  font-size: 16px;
+  font-weight: 700;
+  color: $primary;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.smit-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: $primary-mid;
+  text-decoration: none;
+  border: 1.5px solid $primary-light;
+  border-radius: 20px;
+  padding: 4px 14px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $primary-mid;
+    color: $white;
+    border-color: $primary-mid;
+  }
+}

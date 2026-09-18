@@ -1,0 +1,46 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">{{ mode === 'create' ? 'New Company' : 'Edit Company' }}</h1>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="field-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>DMS Company ID</mat-label>
+          <input matInput formControlName="dmsCompanyId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Location</mat-label>
+          <input matInput formControlName="location" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country Code</mat-label>
+          <input matInput formControlName="countryCode" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Customer Number</mat-label>
+          <input matInput formControlName="customerNumber" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Default Locale</mat-label>
+          <input matInput formControlName="defaultLocale" />
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-button type="button" [routerLink]="cancelLink()">Cancel</button>
+        <button mat-flat-button color="primary" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+</div>

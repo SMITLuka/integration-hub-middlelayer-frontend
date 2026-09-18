@@ -1,0 +1,29 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Interfaces</h1>
+    <button mat-flat-button color="primary" routerLink="/interfaces/new">
+      <mat-icon>add</mat-icon>
+      New
+    </button>
+  </div>
+
+  <div class="card">
+    <app-data-table
+      [columns]="columns"
+      [rows]="rows()"
+      [totalElements]="totalElements()"
+      [pageIndex]="pageIndex()"
+      [pageSize]="pageSize()"
+      searchPlaceholder="Search interfaces"
+      emptyMessage="No interfaces found."
+      (searchChange)="onSearchChange($event)"
+      (pageIndexChange)="onPageIndexChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+      (rowClick)="onRowClick($event)"
+    >
+      <ng-template let-row>
+        <app-action-menu [items]="buildActions(row)"></app-action-menu>
+      </ng-template>
+    </app-data-table>
+  </div>
+</div>

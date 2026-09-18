@@ -1,0 +1,73 @@
+$primary: #333694;
+$primary-mid: #5557a5;
+$primary-light: #6c6fb2;
+$accent-light: #a4a6cf;
+$bg-light: #e8eaf3;
+$bg-mid: #cacbe3;
+
+.kv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.kv-key {
+  padding: 10px 12px;
+  width: 30%;
+  font-weight: 600;
+  color: $primary;
+  border-bottom: 1px solid $bg-light;
+  vertical-align: top;
+}
+
+.kv-value {
+  padding: 10px 12px;
+  border-bottom: 1px solid $bg-light;
+  color: #1e2060;
+  vertical-align: top;
+}
+
+.kv-caption {
+  margin-top: 2px;
+  font-size: 11px;
+  color: $accent-light;
+}
+
+.kv-actions {
+  padding: 6px 12px;
+  border-bottom: 1px solid $bg-light;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.kv-empty-row td {
+  padding: 16px 12px;
+  color: $accent-light;
+  text-align: center;
+}
+
+.kv-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.kv-add-input {
+  border: 1px solid $bg-mid;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: $primary;
+  min-width: 160px;
+  flex: 1;
+
+  &::placeholder { color: $accent-light; }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-light;
+  }
+}

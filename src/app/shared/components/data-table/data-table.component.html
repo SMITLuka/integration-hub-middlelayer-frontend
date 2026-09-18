@@ -1,0 +1,72 @@
+<div class="data-table">
+  @if (showSearch) {
+    <div class="table-toolbar">
+      <div class="table-search">
+        <mat-icon>search</mat-icon>
+        <input
+          type="text"
+          [placeholder]="searchPlaceholder"
+          [ngModel]="searchTerm"
+          (ngModelChange)="onSearchInput($event)"
+        />
+      </div>
+    </div>
+  }
+
+  <div class="table-scroll">
+    <table class="ih-table">
+      <thead>
+        <tr>
+          @for (column of columns; track column.key) {
+            <th>{{ column.label }}</th>
+          }
+          @if (rowActionsTemplate) {
+            <th class="actions-col"></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row) {
+          <tr (click)="rowClick.emit(row)">
+            @for (column of columns; track column.key) {
+              <td>{{ cellValue(column, row) }}</td>
+            }
+            @if (rowActionsTemplate) {
+              <td class="actions-col">
+                <ng-container *ngTemplateOutlet="rowActionsTemplate; context: { $implicit: row }"></ng-container>
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr class="empty-row">
+            <td [attr.colspan]="columns.length + (rowActionsTemplate ? 1 : 0)">{{ emptyMessage }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (showPagination) {
+    <div class="table-pagination">
+      <div class="page-size-picker">
+        <span>Rows per page:</span>
+        <mat-select [value]="pageSize" (selectionChange)="onPageSizeSelected($event.value)">
+          @for (option of pageSizeOptions; track option) {
+            <mat-option [value]="option">{{ option }}</mat-option>
+          }
+        </mat-select>
+      </div>
+
+      <span class="page-range">{{ rangeStart }} &ndash; {{ rangeEnd }} of {{ totalElements }}</span>
+
+      <div class="page-nav">
+        <button type="button" class="page-nav-btn" [disabled]="pageIndex === 0" (click)="goToPreviousPage()" aria-label="Previous page">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button type="button" class="page-nav-btn" [disabled]="!hasNextPage" (click)="goToNextPage()" aria-label="Next page">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+@if (detail(); as d) {
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ d.interfaceName }}</h1>
+        <a class="page-subtitle" [routerLink]="['/companies', companyId]">{{ companyName() }}</a>
+      </div>
+      <div class="form-actions">
+        <button mat-button [routerLink]="['/companies', companyId]">
+          <mat-icon>arrow_back</mat-icon>
+          Back
+        </button>
+        <button mat-stroked-button color="warn" (click)="onDeleteConfiguration()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="row-table">
+        <tbody>
+          @for (entry of d.entries; track entry.templateEntryId) {
+            <tr>
+              <td class="row-key">
+                <div>{{ entry.key }}</div>
+                @if (entry.description) {
+                  <div class="row-description">{{ entry.description }}</div>
+                }
+              </td>
+              <td class="row-value">
+                <div>{{ entry.effectiveValue || '—' }}</div>
+                @if (captionFor(entry); as caption) {
+                  <div class="row-caption">{{ caption }}</div>
+                }
+              </td>
+              <td class="row-actions">
+                @if (entry.sourceLevel === 'OVERRIDE') {
+                  <button mat-icon-button color="warn" (click)="onDeleteEntry(entry)" aria-label="Delete">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                } @else {
+                  <button mat-icon-button (click)="onEditEntry(entry)" aria-label="Edit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr class="row-empty">
+              <td colspan="3">No entries defined.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

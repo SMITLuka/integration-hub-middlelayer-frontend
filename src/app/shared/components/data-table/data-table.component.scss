@@ -1,0 +1,148 @@
+$primary: #333694;
+$primary-mid: #5557a5;
+$primary-light: #6c6fb2;
+$accent-light: #a4a6cf;
+$bg-light: #e8eaf3;
+$bg-mid: #cacbe3;
+$white: #ffffff;
+
+.data-table {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.table-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $bg-light;
+  border: 1px solid $bg-mid;
+  border-radius: 20px;
+  padding: 6px 14px;
+  min-width: 240px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    color: $primary-light;
+  }
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    font-family: inherit;
+    color: $primary;
+    width: 100%;
+
+    &::placeholder { color: $accent-light; }
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.ih-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: $primary-light;
+    border-bottom: 2px solid $bg-mid;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid $bg-light;
+    color: #1e2060;
+  }
+
+  tbody tr:not(.empty-row) {
+    cursor: pointer;
+    transition: background 0.12s ease;
+
+    &:hover {
+      background: rgba($primary-light, 0.06);
+    }
+  }
+
+  .empty-row td {
+    text-align: center;
+    color: $accent-light;
+    padding: 24px 16px;
+  }
+
+  .actions-col {
+    width: 48px;
+    text-align: right;
+  }
+}
+
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: $primary-light;
+}
+
+.page-size-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-select {
+    width: 64px;
+  }
+}
+
+.page-range {
+  white-space: nowrap;
+}
+
+.page-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.page-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid $bg-mid;
+  border-radius: 6px;
+  background: $white;
+  color: $primary;
+  cursor: pointer;
+
+  mat-icon { font-size: 18px; height: 18px; width: 18px; }
+
+  &:disabled {
+    color: $accent-light;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: $bg-light;
+  }
+}

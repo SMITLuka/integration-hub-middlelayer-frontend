@@ -1,0 +1,58 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">{{ mode === 'create' ? 'New Mandator' : 'Edit Mandator' }}</h1>
+  </div>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="field-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>System</mat-label>
+          <input matInput formControlName="system" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Customer</mat-label>
+          <input matInput formControlName="customer" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Mandator ID</mat-label>
+          <input matInput formControlName="externalMandatorId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Locale</mat-label>
+          <input matInput formControlName="locale" />
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/mandators">Cancel</button>
+        <button mat-flat-button color="primary" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+
+  @if (mode === 'edit') {
+    <div class="card">
+      <h2 class="card-section-title">Additional Data</h2>
+      <app-key-value-editor
+        [rows]="additionalData()"
+        [allowAdd]="true"
+        (add)="onAdditionalDataAdd($event)"
+        (delete)="onAdditionalDataDelete($event)"
+      ></app-key-value-editor>
+    </div>
+  }
+</div>

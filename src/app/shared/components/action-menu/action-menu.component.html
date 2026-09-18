@@ -1,0 +1,9 @@
+<button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()" aria-label="Row actions">
+  <mat-icon>more_vert</mat-icon>
+</button>
+
+<mat-menu #menu="matMenu">
+  @for (item of items; track item.label) {
+    <button mat-menu-item (click)="onSelect(item)">{{ item.label }}</button>
+  }
+</mat-menu>

@@ -1,0 +1,108 @@
+@if (detail(); as d) {
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ d.name }}</h1>
+        <a class="page-subtitle" [routerLink]="['/mandators', d.mandatorId]">{{ d.mandatorName }}</a>
+      </div>
+      <div class="form-actions">
+        <button mat-button [routerLink]="['/mandators', d.mandatorId]">
+          <mat-icon>arrow_back</mat-icon>
+          Back
+        </button>
+        <button mat-stroked-button color="primary" [routerLink]="['/companies', companyId, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-stroked-button color="warn" (click)="onDeleteCompany()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field-grid">
+        <div><span class="page-subtitle">Customer Number</span><div>{{ d.customerNumber || '—' }}</div></div>
+        <div><span class="page-subtitle">DMS Company ID</span><div>{{ d.dmsCompanyId || '—' }}</div></div>
+        <div><span class="page-subtitle">Location</span><div>{{ d.location || '—' }}</div></div>
+        <div><span class="page-subtitle">Country</span><div>{{ d.countryCode || '—' }}</div></div>
+        <div><span class="page-subtitle">Locale</span><div>{{ d.defaultLocale || '—' }}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-section-title">Additional Data</h2>
+      <app-key-value-editor
+        [rows]="additionalData()"
+        [allowAdd]="true"
+        (edit)="onAdditionalDataEdit($event)"
+        (add)="onAdditionalDataAdd($event)"
+        (delete)="onAdditionalDataDelete($event)"
+      ></app-key-value-editor>
+    </div>
+
+    <div class="card">
+      <div class="page-header">
+        <h2 class="card-section-title">Mappings</h2>
+        <button mat-flat-button color="primary" [matMenuTriggerFor]="newMappingMenu" [disabled]="availableMappingInterfaces().length === 0">
+          <mat-icon>add</mat-icon>
+          New
+        </button>
+        <mat-menu #newMappingMenu="matMenu">
+          @for (i of availableMappingInterfaces(); track i.id) {
+            <button mat-menu-item (click)="onCreateMapping(i.id)">{{ i.name }}</button>
+          } @empty {
+            <button mat-menu-item disabled>No interfaces available</button>
+          }
+        </mat-menu>
+      </div>
+      <app-data-table
+        [columns]="mappingColumns"
+        [rows]="d.mappings"
+        [showSearch]="false"
+        [showPagination]="false"
+        emptyMessage="No mappings found."
+        (rowClick)="onMappingRowClick($event)"
+      >
+        <ng-template let-row>
+          <app-action-menu [items]="buildMappingActions(row)"></app-action-menu>
+        </ng-template>
+      </app-data-table>
+    </div>
+
+    <div class="card">
+      <div class="page-header">
+        <h2 class="card-section-title">Configurations</h2>
+        <button
+          mat-flat-button
+          color="primary"
+          [matMenuTriggerFor]="newConfigurationMenu"
+          [disabled]="availableConfigurationInterfaces().length === 0"
+        >
+          <mat-icon>add</mat-icon>
+          New
+        </button>
+        <mat-menu #newConfigurationMenu="matMenu">
+          @for (i of availableConfigurationInterfaces(); track i.id) {
+            <button mat-menu-item (click)="onCreateConfiguration(i.id)">{{ i.name }}</button>
+          } @empty {
+            <button mat-menu-item disabled>No interfaces available</button>
+          }
+        </mat-menu>
+      </div>
+      <app-data-table
+        [columns]="configurationColumns"
+        [rows]="d.configurations"
+        [showSearch]="false"
+        [showPagination]="false"
+        emptyMessage="No configurations found."
+        (rowClick)="onConfigurationRowClick($event)"
+      >
+        <ng-template let-row>
+          <app-action-menu [items]="buildConfigurationActions(row)"></app-action-menu>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </div>
+}

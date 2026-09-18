@@ -1,0 +1,6 @@
+{
+  "/mandators": { "target": "http://localhost:8080", "secure": false, "changeOrigin": true },
+  "/companies": { "target": "http://localhost:8080", "secure": false, "changeOrigin": true },
+  "/dashboard": { "target": "http://localhost:8080", "secure": false, "changeOrigin": true },
+  "/interfaces": { "target": "http://localhost:8080", "secure": false, "changeOrigin": true }
+}

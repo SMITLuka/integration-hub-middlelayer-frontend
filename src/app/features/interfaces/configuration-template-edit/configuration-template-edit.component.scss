@@ -1,0 +1,13 @@
+.config-entry-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 900px) {
+  .config-entry-row {
+    grid-template-columns: 1fr;
+  }
+}

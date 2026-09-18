@@ -1,0 +1,43 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card stat-card">
+      <div class="stat-icon"><mat-icon>sync_alt</mat-icon></div>
+      <div class="stat-body">
+        <div class="stat-title">Interfaces</div>
+        <div class="stat-value">{{ summary()?.configuredInterfaces ?? 0 }} configured interfaces</div>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-icon"><mat-icon>business</mat-icon></div>
+      <div class="stat-body">
+        <div class="stat-title">Mandators</div>
+        <div class="stat-value">{{ summary()?.configuredMandators ?? 0 }} configured mandators</div>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-icon"><mat-icon>schema</mat-icon></div>
+      <div class="stat-body">
+        <div class="stat-title">Mapping</div>
+        <div class="stat-value">{{ summary()?.configuredMappingTemplates ?? 0 }} configured mapping templates</div>
+      </div>
+    </div>
+
+    <div class="card action-card">
+      <div class="stat-title">Action</div>
+      <button mat-flat-button color="primary" routerLink="/mandators/new">
+        <mat-icon>add</mat-icon>
+        ADD Mandator
+      </button>
+      <button mat-stroked-button color="primary" routerLink="/interfaces/new">
+        <mat-icon>add</mat-icon>
+        ADD Interface
+      </button>
+    </div>
+  </div>
+</div>

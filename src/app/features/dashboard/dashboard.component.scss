@@ -1,0 +1,62 @@
+$primary: #333694;
+$primary-mid: #5557a5;
+$primary-light: #6c6fb2;
+$bg-light: #e8eaf3;
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: $bg-light;
+  color: $primary;
+  flex-shrink: 0;
+
+  mat-icon { font-size: 24px; height: 24px; width: 24px; }
+}
+
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary-light;
+}
+
+.stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: $primary;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .stat-title {
+    margin-bottom: 4px;
+  }
+
+  button {
+    justify-content: flex-start;
+  }
+}
