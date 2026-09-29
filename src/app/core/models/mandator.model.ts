@@ -4,6 +4,7 @@ import { CompanySummary } from './company.model';
 /** Row shape for the Mandators list screen. */
 export interface MandatorSummary {
   id: number;
+  uuid: string;
   name: string;
   system: string | null;
   personalIdentificationNumber: string | null;
@@ -18,6 +19,7 @@ export interface MandatorSummary {
 /** Full detail shape for the Mandator "View Details" screen. */
 export interface MandatorDetail {
   id: number;
+  uuid: string;
   name: string;
   system: string | null;
   personalIdentificationNumber: string | null;

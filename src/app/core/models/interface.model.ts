@@ -3,6 +3,7 @@ import { AdditionalDataEntry } from './additional-data.model';
 /** Row shape for the Interfaces list screen. */
 export interface InterfaceSummary {
   id: number;
+  uuid: string;
   name: string;
   hasMappingTemplate: boolean;
   hasConfigurationTemplate: boolean;
@@ -26,10 +27,9 @@ export interface InterfaceUsages {
 /** Full detail shape for the Interface "View Details" screen. */
 export interface InterfaceDetail {
   id: number;
+  uuid: string;
   name: string;
-  dmsToMiddlewareUrl: string | null;
-  oemToMiddlewareUrl: string | null;
-  middlewareToOemUrl: string | null;
+  description: string | null;
   additionalData: AdditionalDataEntry[];
   hasMappingTemplate: boolean;
   hasConfigurationTemplate: boolean;
@@ -39,9 +39,7 @@ export interface InterfaceDetail {
 /** Request body for creating an Interface. */
 export interface InterfaceCreateRequest {
   name: string;
-  dmsToMiddlewareUrl?: string | null;
-  oemToMiddlewareUrl?: string | null;
-  middlewareToOemUrl?: string | null;
+  description?: string | null;
 }
 
 /** Request body for updating an Interface's own fields (Additional Data is managed separately). */

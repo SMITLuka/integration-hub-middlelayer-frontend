@@ -15,11 +15,9 @@
     </div>
 
     <div class="card">
-      <div class="field-grid">
-        <div><span class="page-subtitle">DMS-to-Middleware URL</span><div>{{ d.dmsToMiddlewareUrl || '—' }}</div></div>
-        <div><span class="page-subtitle">OEM-to-Middleware URL</span><div>{{ d.oemToMiddlewareUrl || '—' }}</div></div>
-        <div><span class="page-subtitle">Middleware-to-OEM URL</span><div>{{ d.middlewareToOemUrl || '—' }}</div></div>
-      </div>
+      <span class="page-subtitle">Description</span>
+      <div class="description-text">{{ d.description || '—' }}</div>
+      <div class="entity-uuid">ID: {{ d.uuid }}</div>
     </div>
 
     <div class="card">

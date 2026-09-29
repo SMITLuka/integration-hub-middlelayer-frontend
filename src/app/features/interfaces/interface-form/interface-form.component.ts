@@ -34,9 +34,7 @@ export class InterfaceFormComponent {
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    dmsToMiddlewareUrl: [''],
-    oemToMiddlewareUrl: [''],
-    middlewareToOemUrl: [''],
+    description: ['', Validators.maxLength(2000)],
   });
 
   constructor() {
@@ -44,9 +42,7 @@ export class InterfaceFormComponent {
       this.interfaceService.getDetail(this.interfaceId).subscribe((detail) => {
         this.form.patchValue({
           name: detail.name,
-          dmsToMiddlewareUrl: detail.dmsToMiddlewareUrl ?? '',
-          oemToMiddlewareUrl: detail.oemToMiddlewareUrl ?? '',
-          middlewareToOemUrl: detail.middlewareToOemUrl ?? '',
+          description: detail.description ?? '',
         });
         this.additionalData.set(detail.additionalData.map((entry) => ({ key: entry.key, value: entry.value })));
       });

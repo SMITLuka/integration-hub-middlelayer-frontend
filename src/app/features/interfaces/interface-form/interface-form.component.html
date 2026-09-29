@@ -10,22 +10,13 @@
           <mat-label>Name</mat-label>
           <input matInput formControlName="name" required />
         </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>DMS-to-Middleware URL</mat-label>
-          <input matInput formControlName="dmsToMiddlewareUrl" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>OEM-to-Middleware URL</mat-label>
-          <input matInput formControlName="oemToMiddlewareUrl" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Middleware-to-OEM URL</mat-label>
-          <input matInput formControlName="middlewareToOemUrl" />
-        </mat-form-field>
       </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="5" maxlength="2000" placeholder="Describe what this integration does"></textarea>
+        <mat-hint align="end">{{ form.controls.description.value.length }} / 2000</mat-hint>
+      </mat-form-field>
 
       <div class="form-actions">
         <button mat-button type="button" routerLink="/interfaces">Cancel</button>

@@ -1,6 +1,7 @@
 /** Row shape for the Companies table nested inside a Mandator detail screen. */
 export interface CompanySummary {
   id: number;
+  uuid: string;
   name: string;
   dmsCompanyId: string | null;
   location: string | null;
@@ -26,6 +27,7 @@ export interface CompanyConfigurationSummary {
 /** Full detail shape for the Company "View Details" screen. */
 export interface CompanyDetail {
   id: number;
+  uuid: string;
   mandatorId: number;
   mandatorName: string;
   name: string;
