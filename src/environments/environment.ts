@@ -1,8 +1,9 @@
 /**
  * Production environment configuration.
- * The API base URL is set at deployment time; until then this points at a placeholder.
+ * The browser calls the backend directly, so this must be its public HTTPS URL
+ * (an HTTP URL would be blocked as mixed content on the HTTPS-hosted frontend).
  */
 export const environment = {
   production: true,
-  apiBaseUrl: '',
+  apiBaseUrl: 'https://oebq1ihnddzfc11litrx2chr.128.140.44.96.sslip.io',
 };
