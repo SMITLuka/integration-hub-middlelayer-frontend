@@ -31,6 +31,7 @@ export interface CompanyDetail {
   name: string;
   dmsCompanyId: string | null;
   location: string | null;
+  address: string | null;
   countryCode: string | null;
   customerNumber: string | null;
   defaultLocale: string | null;
@@ -43,6 +44,7 @@ export interface CompanyCreateRequest {
   name: string;
   dmsCompanyId?: string | null;
   location?: string | null;
+  address?: string | null;
   countryCode?: string | null;
   customerNumber?: string | null;
   defaultLocale?: string | null;

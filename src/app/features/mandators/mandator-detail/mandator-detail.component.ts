@@ -33,7 +33,7 @@ export class MandatorDetailComponent {
 
   protected readonly companyColumns: DataTableColumn<CompanySummary>[] = [
     { key: 'name', label: 'Name' },
-    { key: 'dmsCompanyId', label: 'DMS Company ID' },
+    { key: 'dmsCompanyId', label: 'Company ID' },
     { key: 'location', label: 'Location' },
     { key: 'countryCode', label: 'Country' },
   ];

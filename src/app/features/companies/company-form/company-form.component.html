@@ -6,32 +6,37 @@
   <div class="card">
     <form [formGroup]="form" (ngSubmit)="save()">
       <div class="field-grid">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Name</mat-label>
-          <input matInput formControlName="name" required />
+          <input matInput formControlName="name" placeholder="Poslovnica Zagreb 1" required />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>DMS Company ID</mat-label>
-          <input matInput formControlName="dmsCompanyId" />
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Company ID</mat-label>
+          <input matInput formControlName="dmsCompanyId" placeholder="1" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Location</mat-label>
-          <input matInput formControlName="location" />
+          <input matInput formControlName="location" placeholder="Zagreb" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Address</mat-label>
+          <input matInput formControlName="address" placeholder="slavonska avenija 11d" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Country Code</mat-label>
           <input matInput formControlName="countryCode" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Customer Number</mat-label>
           <input matInput formControlName="customerNumber" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Default Locale</mat-label>
           <input matInput formControlName="defaultLocale" />
         </mat-form-field>
