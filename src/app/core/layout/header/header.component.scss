@@ -43,6 +43,18 @@ $white: #ffffff;
 .header-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: $primary;
+  white-space: nowrap;
+}
+
+.logout-button {
+  color: $primary-mid;
 }
 
 .smit-link {

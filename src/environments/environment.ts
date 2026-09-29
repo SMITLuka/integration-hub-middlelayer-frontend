@@ -6,4 +6,7 @@
 export const environment = {
   production: true,
   apiBaseUrl: 'https://oebq1ihnddzfc11litrx2chr.128.140.44.96.sslip.io',
+  // Bitrix MCP server acting as OpenID Connect provider: users log in with their Bitrix24 account.
+  authIssuer: 'https://mcp.sm-it.hr',
+  authClientId: 'integration-hub',
 };

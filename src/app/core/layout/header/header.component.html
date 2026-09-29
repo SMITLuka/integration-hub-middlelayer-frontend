@@ -5,6 +5,13 @@
   </div>
 
   <div class="header-right">
+    @if (auth.userName(); as name) {
+      <span class="user-name">{{ name }}</span>
+    }
+    <button mat-button class="logout-button" (click)="auth.logout()">
+      <mat-icon>logout</mat-icon>
+      Logout
+    </button>
     <a href="https://sm-it.hr/" target="_blank" rel="noopener" class="smit-link">sm-it.hr</a>
   </div>
 </header>

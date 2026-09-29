@@ -21,9 +21,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (!req.context.get(SUPPRESS_ERROR_TOAST)) {
+      // 401: the auth interceptor is already sending the user to the login page.
+      if (!req.context.get(SUPPRESS_ERROR_TOAST) && error.status !== 401) {
         const body = error.error as ErrorResponse | undefined;
-        const description = body?.error?.description ?? 'An unexpected error occurred.';
+        const description =
+          body?.error?.description ??
+          (error.status === 403 ? 'Integration Hub is available to SM-IT intranet employees only.' : 'An unexpected error occurred.');
         snackBar.open(description, 'Dismiss', { duration: 6000 });
       }
       return throwError(() => error);

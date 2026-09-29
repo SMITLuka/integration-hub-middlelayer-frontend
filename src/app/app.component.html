@@ -1,1 +1,15 @@
-<app-shell></app-shell>
+@if (auth.error(); as message) {
+  <div class="auth-message">
+    <h1>Login failed</h1>
+    <p>{{ message }}</p>
+    <button mat-flat-button color="primary" (click)="auth.login({ forceReauth: true })">Log in again</button>
+  </div>
+} @else if (auth.signedOut()) {
+  <div class="auth-message">
+    <h1>You are signed out</h1>
+    <p>You have been signed out of Integration Hub.</p>
+    <button mat-flat-button color="primary" (click)="auth.login()">Log in</button>
+  </div>
+} @else {
+  <app-shell></app-shell>
+}
