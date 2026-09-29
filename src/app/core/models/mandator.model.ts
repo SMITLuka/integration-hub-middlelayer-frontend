@@ -6,8 +6,10 @@ export interface MandatorSummary {
   id: number;
   name: string;
   system: string | null;
-  customer: string | null;
+  personalIdentificationNumber: string | null;
   externalMandatorId: string | null;
+  hostUrl: string | null;
+  port: number | null;
   country: string | null;
   locale: string | null;
   companyCount: number;
@@ -18,8 +20,10 @@ export interface MandatorDetail {
   id: number;
   name: string;
   system: string | null;
-  customer: string | null;
+  personalIdentificationNumber: string | null;
   externalMandatorId: string | null;
+  hostUrl: string | null;
+  port: number | null;
   country: string | null;
   locale: string | null;
   additionalData: AdditionalDataEntry[];
@@ -30,8 +34,10 @@ export interface MandatorDetail {
 export interface MandatorCreateRequest {
   name: string;
   system?: string | null;
-  customer?: string | null;
+  personalIdentificationNumber?: string | null;
   externalMandatorId?: string | null;
+  hostUrl?: string | null;
+  port?: number | null;
   country?: string | null;
   locale?: string | null;
 }

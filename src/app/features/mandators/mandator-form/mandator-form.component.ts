@@ -35,8 +35,10 @@ export class MandatorFormComponent {
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     system: [''],
-    customer: [''],
+    personalIdentificationNumber: [''],
     externalMandatorId: [''],
+    hostUrl: [''],
+    port: this.fb.control<number | null>(null, [Validators.min(1), Validators.max(65535), Validators.pattern(/^\d+$/)]),
     country: [''],
     locale: [''],
   });
@@ -47,8 +49,10 @@ export class MandatorFormComponent {
         this.form.patchValue({
           name: detail.name,
           system: detail.system ?? '',
-          customer: detail.customer ?? '',
+          personalIdentificationNumber: detail.personalIdentificationNumber ?? '',
           externalMandatorId: detail.externalMandatorId ?? '',
+          hostUrl: detail.hostUrl ?? '',
+          port: detail.port,
           country: detail.country ?? '',
           locale: detail.locale ?? '',
         });

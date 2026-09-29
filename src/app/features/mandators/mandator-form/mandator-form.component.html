@@ -6,34 +6,45 @@
   <div class="card">
     <form [formGroup]="form" (ngSubmit)="save()">
       <div class="field-grid">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Name</mat-label>
-          <input matInput formControlName="name" required />
+          <input matInput formControlName="name" placeholder="Autokuća Longin d.o.o." required />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>System</mat-label>
-          <input matInput formControlName="system" />
+          <input matInput formControlName="system" placeholder="Pantheon" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Customer</mat-label>
-          <input matInput formControlName="customer" />
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Personal Identification Number</mat-label>
+          <input matInput formControlName="personalIdentificationNumber" placeholder="12934449907" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Mandator ID</mat-label>
-          <input matInput formControlName="externalMandatorId" />
+          <input matInput formControlName="externalMandatorId" placeholder="B0" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Host URL</mat-label>
+          <input matInput formControlName="hostUrl" placeholder="pantheon.sm-it.hr" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Port</mat-label>
+          <input matInput type="number" step="1" formControlName="port" placeholder="1666" />
+          <mat-error>Port must be a whole number between 1 and 65535</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Country</mat-label>
-          <input matInput formControlName="country" />
+          <input matInput formControlName="country" placeholder="AT" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Locale</mat-label>
-          <input matInput formControlName="locale" />
+          <input matInput formControlName="locale" placeholder="de-AT" />
         </mat-form-field>
       </div>
 

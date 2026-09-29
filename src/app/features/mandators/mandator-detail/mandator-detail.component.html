@@ -21,8 +21,10 @@
     <div class="card">
       <div class="field-grid">
         <div><span class="page-subtitle">System</span><div>{{ d.system || '—' }}</div></div>
-        <div><span class="page-subtitle">Customer</span><div>{{ d.customer || '—' }}</div></div>
+        <div><span class="page-subtitle">Personal Identification Number</span><div>{{ d.personalIdentificationNumber || '—' }}</div></div>
         <div><span class="page-subtitle">Mandator ID</span><div>{{ d.externalMandatorId || '—' }}</div></div>
+        <div><span class="page-subtitle">Host URL</span><div>{{ d.hostUrl || '—' }}</div></div>
+        <div><span class="page-subtitle">Port</span><div>{{ d.port ?? '—' }}</div></div>
         <div><span class="page-subtitle">Country</span><div>{{ d.country || '—' }}</div></div>
         <div><span class="page-subtitle">Locale</span><div>{{ d.locale || '—' }}</div></div>
       </div>
