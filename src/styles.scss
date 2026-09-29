@@ -144,6 +144,12 @@ html, body {
   width: 100%;
 }
 
+// Material drops the dialog content's top padding right under a dialog title, and the content
+// scrolls (overflow: auto), so an outlined field's floating label was clipped. Give it room.
+.mat-mdc-dialog-content > .mat-mdc-form-field:first-child {
+  margin-top: 8px;
+}
+
 // Technical UUID shown at the bottom of a detail card, like DICM: visible and copyable but unobtrusive.
 .entity-uuid {
   margin-top: 16px;
