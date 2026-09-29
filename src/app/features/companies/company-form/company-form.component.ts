@@ -36,7 +36,6 @@ export class CompanyFormComponent {
     location: [''],
     address: [''],
     countryCode: [''],
-    customerNumber: [''],
     defaultLocale: [''],
   });
 
@@ -50,7 +49,6 @@ export class CompanyFormComponent {
           location: detail.location ?? '',
           address: detail.address ?? '',
           countryCode: detail.countryCode ?? '',
-          customerNumber: detail.customerNumber ?? '',
           defaultLocale: detail.defaultLocale ?? '',
         });
       });

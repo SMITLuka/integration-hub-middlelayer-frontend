@@ -33,7 +33,6 @@ export interface CompanyDetail {
   location: string | null;
   address: string | null;
   countryCode: string | null;
-  customerNumber: string | null;
   defaultLocale: string | null;
   mappings: CompanyMappingSummary[];
   configurations: CompanyConfigurationSummary[];
@@ -46,7 +45,6 @@ export interface CompanyCreateRequest {
   location?: string | null;
   address?: string | null;
   countryCode?: string | null;
-  customerNumber?: string | null;
   defaultLocale?: string | null;
 }
 
