@@ -30,14 +30,18 @@
 
     <div class="card action-card">
       <div class="stat-title">Action</div>
-      <button mat-flat-button color="primary" routerLink="/mandators/new">
-        <mat-icon>add</mat-icon>
-        ADD Mandator
-      </button>
-      <button mat-stroked-button color="primary" routerLink="/interfaces/new">
-        <mat-icon>add</mat-icon>
-        ADD Interface
-      </button>
+      @if (profile.can('MANDATORS_COMPANIES', 'write')) {
+        <button mat-flat-button color="primary" routerLink="/mandators/new">
+          <mat-icon>add</mat-icon>
+          ADD Mandator
+        </button>
+      }
+      @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+        <button mat-stroked-button color="primary" routerLink="/interfaces/new">
+          <mat-icon>add</mat-icon>
+          ADD Interface
+        </button>
+      }
     </div>
   </div>
 </div>

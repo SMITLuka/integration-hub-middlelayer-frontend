@@ -9,10 +9,12 @@
         <mat-icon>arrow_back</mat-icon>
         Back
       </button>
-      <button mat-flat-button color="primary" type="button" (click)="save()">
-        <mat-icon>save</mat-icon>
-        Save
-      </button>
+      @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+        <button mat-flat-button color="primary" type="button" (click)="save()">
+          <mat-icon>save</mat-icon>
+          Save
+        </button>
+      }
     </div>
   </div>
 
@@ -23,9 +25,11 @@
           <mat-label>Section Name</mat-label>
           <input matInput formControlName="name" required />
         </mat-form-field>
-        <button mat-icon-button color="warn" type="button" (click)="removeSection(sectionIndex)" aria-label="Remove section">
-          <mat-icon>delete</mat-icon>
-        </button>
+        @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+          <button mat-icon-button color="warn" type="button" (click)="removeSection(sectionIndex)" aria-label="Remove section">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
       </div>
 
       <div class="mapping-rows">
@@ -39,22 +43,28 @@
               <mat-label>Third Party Value</mat-label>
               <input matInput formControlName="thirdPartyValue" />
             </mat-form-field>
-            <button mat-icon-button color="warn" type="button" (click)="removeRow(section, $index)" aria-label="Remove row">
-              <mat-icon>delete</mat-icon>
-            </button>
+            @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+              <button mat-icon-button color="warn" type="button" (click)="removeRow(section, $index)" aria-label="Remove row">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
           </div>
         }
       </div>
 
-      <button mat-stroked-button color="primary" type="button" (click)="addRow(section)">
-        <mat-icon>add</mat-icon>
-        Add Row
-      </button>
+      @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+        <button mat-stroked-button color="primary" type="button" (click)="addRow(section)">
+          <mat-icon>add</mat-icon>
+          Add Row
+        </button>
+      }
     </div>
   }
 
-  <button mat-stroked-button color="primary" type="button" (click)="addSection()">
-    <mat-icon>add</mat-icon>
-    Add Section
-  </button>
+  @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+    <button mat-stroked-button color="primary" type="button" (click)="addSection()">
+      <mat-icon>add</mat-icon>
+      Add Section
+    </button>
+  }
 </div>

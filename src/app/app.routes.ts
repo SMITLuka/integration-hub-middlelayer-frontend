@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { canWrite } from './core/auth/can-write.guard';
 
 /**
  * Application routes. Ordering matters for the router: static segments
@@ -16,11 +17,13 @@ export const routes: Routes = [
   },
   {
     path: 'interfaces/new',
+    canActivate: [canWrite('INTERFACES_TEMPLATES')],
     loadComponent: () => import('./features/interfaces/interface-form/interface-form.component').then((m) => m.InterfaceFormComponent),
     data: { mode: 'create' },
   },
   {
     path: 'interfaces/:id/edit',
+    canActivate: [canWrite('INTERFACES_TEMPLATES')],
     loadComponent: () => import('./features/interfaces/interface-form/interface-form.component').then((m) => m.InterfaceFormComponent),
     data: { mode: 'edit' },
   },
@@ -46,16 +49,19 @@ export const routes: Routes = [
   },
   {
     path: 'mandators/new',
+    canActivate: [canWrite('MANDATORS_COMPANIES')],
     loadComponent: () => import('./features/mandators/mandator-form/mandator-form.component').then((m) => m.MandatorFormComponent),
     data: { mode: 'create' },
   },
   {
     path: 'mandators/:id/edit',
+    canActivate: [canWrite('MANDATORS_COMPANIES')],
     loadComponent: () => import('./features/mandators/mandator-form/mandator-form.component').then((m) => m.MandatorFormComponent),
     data: { mode: 'edit' },
   },
   {
     path: 'mandators/:mandatorId/companies/new',
+    canActivate: [canWrite('MANDATORS_COMPANIES')],
     loadComponent: () => import('./features/companies/company-form/company-form.component').then((m) => m.CompanyFormComponent),
     data: { mode: 'create' },
   },
@@ -65,6 +71,7 @@ export const routes: Routes = [
   },
   {
     path: 'companies/:id/edit',
+    canActivate: [canWrite('MANDATORS_COMPANIES')],
     loadComponent: () => import('./features/companies/company-form/company-form.component').then((m) => m.CompanyFormComponent),
     data: { mode: 'edit' },
   },

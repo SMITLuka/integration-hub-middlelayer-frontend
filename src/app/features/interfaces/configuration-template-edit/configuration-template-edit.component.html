@@ -9,10 +9,12 @@
         <mat-icon>arrow_back</mat-icon>
         Back
       </button>
-      <button mat-flat-button color="primary" type="button" (click)="save()">
-        <mat-icon>save</mat-icon>
-        Save
-      </button>
+      @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+        <button mat-flat-button color="primary" type="button" (click)="save()">
+          <mat-icon>save</mat-icon>
+          Save
+        </button>
+      }
     </div>
   </div>
 
@@ -48,15 +50,19 @@
           <input matInput formControlName="description" />
         </mat-form-field>
 
-        <button mat-icon-button color="warn" type="button" (click)="removeEntry(entryIndex)" aria-label="Remove entry">
-          <mat-icon>delete</mat-icon>
-        </button>
+        @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+          <button mat-icon-button color="warn" type="button" (click)="removeEntry(entryIndex)" aria-label="Remove entry">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
       </div>
     }
 
-    <button mat-stroked-button color="primary" type="button" (click)="addEntry()">
-      <mat-icon>add</mat-icon>
-      Add Entry
-    </button>
+    @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+      <button mat-stroked-button color="primary" type="button" (click)="addEntry()">
+        <mat-icon>add</mat-icon>
+        Add Entry
+      </button>
+    }
   </div>
 </div>

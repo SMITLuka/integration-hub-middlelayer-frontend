@@ -1,14 +1,15 @@
+// Sidebar spans the full screen height on the left (as in DICM); header, page and footer stack to its right.
 .ih-shell {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   overflow: hidden;
 }
 
-.ih-body {
+.ih-main {
   flex: 1;
   display: flex;
-  min-height: 0;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .ih-content {

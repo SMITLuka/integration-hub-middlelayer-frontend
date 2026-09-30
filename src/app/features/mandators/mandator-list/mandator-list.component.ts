@@ -6,6 +6,7 @@ import { MandatorService } from '../../../core/services/mandator.service';
 import { MandatorSummary } from '../../../core/models/mandator.model';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { ActionMenuComponent, ActionMenuItem } from '../../../shared/components/action-menu/action-menu.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /** Mandators list screen: searchable, paginated table with row-level actions. */
 @Component({
@@ -16,6 +17,7 @@ import { ActionMenuComponent, ActionMenuItem } from '../../../shared/components/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MandatorListComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly mandatorService = inject(MandatorService);
   private readonly router = inject(Router);
 
@@ -68,7 +70,9 @@ export class MandatorListComponent {
   buildActions(row: MandatorSummary): ActionMenuItem[] {
     return [
       { label: 'View Details', action: () => this.router.navigate(['/mandators', row.id]) },
-      { label: 'Edit', action: () => this.router.navigate(['/mandators', row.id, 'edit']) },
+      ...(this.profile.can('MANDATORS_COMPANIES', 'write')
+        ? [{ label: 'Edit', action: () => this.router.navigate(['/mandators', row.id, 'edit']) }]
+        : []),
     ];
   }
 }

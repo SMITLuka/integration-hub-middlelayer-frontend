@@ -1,6 +1,9 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { ProfileService } from './profile.service';
 
 /** Unsigned JWT with the given payload (base64url of UTF-8 JSON, like real tokens); the service only reads claims for display. */
 function fakeJwt(payload: Record<string, unknown>): string {
@@ -32,7 +35,7 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     sessionStorage.clear();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   });
 
   afterEach(() => sessionStorage.clear());
@@ -71,7 +74,6 @@ describe('AuthService', () => {
     expect(body.get('code_verifier')).toBe('the-verifier');
     expect(body.get('client_id')).toBe(environment.authClientId);
     expect(await service.getAccessToken()).toBe(accessToken);
-    expect(service.userName()).toBe('Luka Lozić');
     expect(service.error()).toBeNull();
     expect(replaceState).toHaveBeenCalledWith(null, '', '/mandators');
     expect(Number(sessionStorage.getItem('ih.auth.lastLoginAt'))).toBeGreaterThan(0);
@@ -111,6 +113,17 @@ describe('AuthService', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect((fetchSpy.calls.mostRecent().args[1] as RequestInit).body!.toString()).toContain('grant_type=refresh_token');
     expect(JSON.parse(sessionStorage.getItem('ih.auth.tokens')!).refreshToken).toBe('rt');
+  });
+
+  it('reloads the rights after a token refresh (workgroup membership may have changed)', async () => {
+    sessionStorage.setItem('ih.auth.tokens', JSON.stringify({ accessToken: 'old', refreshToken: 'rt', expiresAt: Date.now() + 10_000 }));
+    createService();
+    spyOn(window, 'fetch').and.resolveTo(tokenResponse({ access_token: 'new', expires_in: 3600 }));
+    const load = spyOn(TestBed.inject(ProfileService), 'load').and.resolveTo();
+
+    await service.getAccessToken();
+
+    expect(load).toHaveBeenCalled();
   });
 
   it('getAccessToken returns null and clears the session when the refresh fails', async () => {

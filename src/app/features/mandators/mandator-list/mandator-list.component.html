@@ -1,10 +1,12 @@
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">Mandators</h1>
-    <button mat-flat-button color="primary" routerLink="/mandators/new">
-      <mat-icon>add</mat-icon>
-      New
-    </button>
+    @if (profile.can('MANDATORS_COMPANIES', 'write')) {
+      <button mat-flat-button color="primary" routerLink="/mandators/new">
+        <mat-icon>add</mat-icon>
+        New
+      </button>
+    }
   </div>
 
   <div class="card">

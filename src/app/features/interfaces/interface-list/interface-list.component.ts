@@ -6,6 +6,7 @@ import { InterfaceService } from '../../../core/services/interface.service';
 import { InterfaceSummary } from '../../../core/models/interface.model';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { ActionMenuComponent, ActionMenuItem } from '../../../shared/components/action-menu/action-menu.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /** Interfaces list screen: searchable, paginated table with row-level actions. */
 @Component({
@@ -16,6 +17,7 @@ import { ActionMenuComponent, ActionMenuItem } from '../../../shared/components/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterfaceListComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly interfaceService = inject(InterfaceService);
   private readonly router = inject(Router);
 
@@ -67,7 +69,9 @@ export class InterfaceListComponent {
   buildActions(row: InterfaceSummary): ActionMenuItem[] {
     return [
       { label: 'View Details', action: () => this.router.navigate(['/interfaces', row.id]) },
-      { label: 'Edit', action: () => this.router.navigate(['/interfaces', row.id, 'edit']) },
+      ...(this.profile.can('INTERFACES_TEMPLATES', 'write')
+        ? [{ label: 'Edit', action: () => this.router.navigate(['/interfaces', row.id, 'edit']) }]
+        : []),
       { label: 'Mapping Template', action: () => this.router.navigate(['/interfaces', row.id, 'mapping-template']) },
       { label: 'Configuration Template', action: () => this.router.navigate(['/interfaces', row.id, 'configuration-template']) },
     ];

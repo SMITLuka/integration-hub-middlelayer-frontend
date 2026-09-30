@@ -10,10 +10,12 @@
           <mat-icon>arrow_back</mat-icon>
           Back
         </button>
-        <button mat-stroked-button color="warn" (click)="onDeleteConfiguration()">
-          <mat-icon>delete</mat-icon>
-          Delete
-        </button>
+        @if (profile.can('CONFIGURATIONS_MAPPINGS', 'delete')) {
+          <button mat-stroked-button color="warn" (click)="onDeleteConfiguration()">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        }
       </div>
     </div>
 

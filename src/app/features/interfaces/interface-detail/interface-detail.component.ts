@@ -6,6 +6,7 @@ import { InterfaceService } from '../../../core/services/interface.service';
 import { InterfaceDetail, InterfaceUsage } from '../../../core/models/interface.model';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { KeyValueChange, KeyValueEditorComponent, KeyValueRow } from '../../../shared/components/key-value-editor/key-value-editor.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /**
  * Interface detail screen: read-only endpoint fields, its own (non-inherited)
@@ -20,6 +21,7 @@ import { KeyValueChange, KeyValueEditorComponent, KeyValueRow } from '../../../s
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterfaceDetailComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly interfaceService = inject(InterfaceService);

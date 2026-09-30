@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { ProfileService } from './profile.service';
 
 interface StoredTokens {
   accessToken: string;
@@ -43,6 +44,7 @@ const FRESH_LOGIN_WINDOW_MS = 30_000;
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly injector = inject(Injector);
   private readonly tokens = signal<StoredTokens | null>(readJson<StoredTokens>(TOKENS_KEY));
   private refreshing: Promise<string | null> | null = null;
   private loginStarted = false;
@@ -52,12 +54,6 @@ export class AuthService {
 
   /** True after logout: the app shows a "signed out" page instead of logging straight back in. */
   readonly signedOut = signal(sessionStorage.getItem(SIGNED_OUT_KEY) !== null);
-
-  /** Display name of the signed-in Bitrix user, taken from the access token's `name` claim. */
-  readonly userName = computed(() => {
-    const tokens = this.tokens();
-    return tokens ? ((decodeJwtPayload(tokens.accessToken)['name'] as string | undefined) ?? null) : null;
-  });
 
   private get redirectUri(): string {
     return `${window.location.origin}/`;
@@ -211,19 +207,24 @@ export class AuthService {
   }
 
   private async refresh(refreshToken: string): Promise<string | null> {
+    let response: TokenResponse;
     try {
-      const response = await this.requestToken({
+      response = await this.requestToken({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
         client_id: environment.authClientId,
       });
-      // The provider does not always rotate refresh tokens; keep the current one if none is returned.
-      this.store({ ...response, refresh_token: response.refresh_token ?? refreshToken });
-      return response.access_token;
     } catch {
       this.clear();
       return null;
     }
+    // The provider does not always rotate refresh tokens; keep the current one if none is returned.
+    this.store({ ...response, refresh_token: response.refresh_token ?? refreshToken });
+    // The new token re-evaluates the Bitrix workgroups, so the rights shown in the UI may have changed.
+    // Looked up lazily: ProfileService depends on HttpClient, whose interceptors depend on this service.
+    // Deliberately outside the token handling above: a failed profile reload must never cost the session.
+    void this.injector.get(ProfileService).load().catch(() => undefined);
+    return response.access_token;
   }
 
   // Plain fetch instead of HttpClient: token calls must not pass through the API interceptors.
@@ -279,17 +280,4 @@ function randomString(): string {
 async function sha256Base64Url(value: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return base64Url(new Uint8Array(digest));
-}
-
-/** Reads the claims for display only; the token's validity is checked by the backend, not here. */
-function decodeJwtPayload(token: string): Record<string, unknown> {
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(
-      Array.from(atob(payload), (c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join(''),
-    );
-    return JSON.parse(json) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
 }

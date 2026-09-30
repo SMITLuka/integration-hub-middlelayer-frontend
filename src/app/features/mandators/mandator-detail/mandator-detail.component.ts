@@ -9,6 +9,7 @@ import { CompanySummary } from '../../../core/models/company.model';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { KeyValueChange, KeyValueEditorComponent, KeyValueRow } from '../../../shared/components/key-value-editor/key-value-editor.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /**
  * Mandator detail screen: read-only fields, inline-editable Additional Data,
@@ -22,6 +23,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MandatorDetailComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly mandatorService = inject(MandatorService);

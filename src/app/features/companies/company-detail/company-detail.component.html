@@ -10,14 +10,18 @@
           <mat-icon>arrow_back</mat-icon>
           Back
         </button>
-        <button mat-stroked-button color="primary" [routerLink]="['/companies', companyId, 'edit']">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
-        <button mat-stroked-button color="warn" (click)="onDeleteCompany()">
-          <mat-icon>delete</mat-icon>
-          Delete
-        </button>
+        @if (profile.can('MANDATORS_COMPANIES', 'write')) {
+          <button mat-stroked-button color="primary" [routerLink]="['/companies', companyId, 'edit']">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+        }
+        @if (profile.can('MANDATORS_COMPANIES', 'delete')) {
+          <button mat-stroked-button color="warn" (click)="onDeleteCompany()">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        }
       </div>
     </div>
 
@@ -36,7 +40,9 @@
       <h2 class="card-section-title">Additional Data</h2>
       <app-key-value-editor
         [rows]="additionalData()"
-        [allowAdd]="true"
+        [allowAdd]="profile.can('MANDATORS_COMPANIES', 'write')"
+        [allowEdit]="profile.can('MANDATORS_COMPANIES', 'write')"
+        [allowDelete]="profile.can('MANDATORS_COMPANIES', 'delete')"
         (edit)="onAdditionalDataEdit($event)"
         (add)="onAdditionalDataAdd($event)"
         (delete)="onAdditionalDataDelete($event)"
@@ -46,10 +52,12 @@
     <div class="card">
       <div class="page-header">
         <h2 class="card-section-title">Mappings</h2>
-        <button mat-flat-button color="primary" [matMenuTriggerFor]="newMappingMenu" [disabled]="availableMappingInterfaces().length === 0">
-          <mat-icon>add</mat-icon>
-          New
-        </button>
+        @if (profile.can('CONFIGURATIONS_MAPPINGS', 'write')) {
+          <button mat-flat-button color="primary" [matMenuTriggerFor]="newMappingMenu" [disabled]="availableMappingInterfaces().length === 0">
+            <mat-icon>add</mat-icon>
+            New
+          </button>
+        }
         <mat-menu #newMappingMenu="matMenu">
           @for (i of availableMappingInterfaces(); track i.id) {
             <button mat-menu-item (click)="onCreateMapping(i.id)">{{ i.name }}</button>
@@ -75,15 +83,17 @@
     <div class="card">
       <div class="page-header">
         <h2 class="card-section-title">Configurations</h2>
-        <button
-          mat-flat-button
-          color="primary"
-          [matMenuTriggerFor]="newConfigurationMenu"
-          [disabled]="availableConfigurationInterfaces().length === 0"
-        >
-          <mat-icon>add</mat-icon>
-          New
-        </button>
+        @if (profile.can('CONFIGURATIONS_MAPPINGS', 'write')) {
+          <button
+            mat-flat-button
+            color="primary"
+            [matMenuTriggerFor]="newConfigurationMenu"
+            [disabled]="availableConfigurationInterfaces().length === 0"
+          >
+            <mat-icon>add</mat-icon>
+            New
+          </button>
+        }
         <mat-menu #newConfigurationMenu="matMenu">
           @for (i of availableConfigurationInterfaces(); track i.id) {
             <button mat-menu-item (click)="onCreateConfiguration(i.id)">{{ i.name }}</button>

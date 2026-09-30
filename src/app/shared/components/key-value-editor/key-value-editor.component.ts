@@ -42,6 +42,9 @@ export interface KeyValueChange {
 export class KeyValueEditorComponent {
   @Input() rows: KeyValueRow[] = [];
   @Input() allowAdd = true;
+  /** Hide per-row edit / delete buttons, e.g. for users without write / delete rights. */
+  @Input() allowEdit = true;
+  @Input() allowDelete = true;
   @Input() addKeyLabel = 'Key';
   @Input() addValueLabel = 'Value';
 

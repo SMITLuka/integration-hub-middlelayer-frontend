@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { InterfaceService } from '../../../core/services/interface.service';
 import { KeyValueChange, KeyValueEditorComponent, KeyValueRow } from '../../../shared/components/key-value-editor/key-value-editor.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -22,6 +23,7 @@ type FormMode = 'create' | 'edit';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterfaceFormComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

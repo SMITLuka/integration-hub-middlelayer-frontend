@@ -17,6 +17,7 @@ import {
   ConfigurationTemplateEntry,
   ConfigurationTemplateUpsertRequest,
 } from '../../../core/models/configuration-template.model';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /** Typed controls for a single Configuration Template entry form. */
 interface ConfigEntryFormControls {
@@ -46,6 +47,7 @@ type ConfigEntryForm = FormGroup<ConfigEntryFormControls>;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfigurationTemplateEditComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -74,7 +76,10 @@ export class ConfigurationTemplateEditComponent {
       )
       .subscribe((template) => {
         template?.entries.forEach((entry) => this.entries.push(this.buildEntryForm(entry)));
-        if (this.entries.length === 0) {
+        if (!this.profile.can('INTERFACES_TEMPLATES', 'write')) {
+          // Readers may look at the template, not change it (the backend rejects changes anyway).
+          this.entries.disable();
+        } else if (this.entries.length === 0) {
           this.addEntry();
         }
       });

@@ -30,7 +30,9 @@
       <h2 class="card-section-title">Additional Data</h2>
       <app-key-value-editor
         [rows]="additionalData()"
-        [allowAdd]="true"
+        [allowAdd]="profile.can('INTERFACES_TEMPLATES', 'write')"
+        [allowEdit]="profile.can('INTERFACES_TEMPLATES', 'write')"
+        [allowDelete]="profile.can('INTERFACES_TEMPLATES', 'delete')"
         (add)="onAdditionalDataAdd($event)"
         (delete)="onAdditionalDataDelete($event)"
       ></app-key-value-editor>

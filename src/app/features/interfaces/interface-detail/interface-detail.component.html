@@ -7,10 +7,12 @@
           <mat-icon>arrow_back</mat-icon>
           Back
         </button>
-        <button mat-stroked-button color="primary" [routerLink]="['/interfaces', interfaceId, 'edit']">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
+        @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+          <button mat-stroked-button color="primary" [routerLink]="['/interfaces', interfaceId, 'edit']">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+        }
       </div>
     </div>
 
@@ -24,7 +26,9 @@
       <h2 class="card-section-title">Additional Data</h2>
       <app-key-value-editor
         [rows]="additionalData()"
-        [allowAdd]="true"
+        [allowAdd]="profile.can('INTERFACES_TEMPLATES', 'write')"
+        [allowEdit]="profile.can('INTERFACES_TEMPLATES', 'write')"
+        [allowDelete]="profile.can('INTERFACES_TEMPLATES', 'delete')"
         (add)="onAdditionalDataAdd($event)"
         (delete)="onAdditionalDataDelete($event)"
       ></app-key-value-editor>

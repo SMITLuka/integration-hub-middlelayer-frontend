@@ -8,6 +8,7 @@ import { CompanyMappingService } from '../../../core/services/company-mapping.se
 import { CompanyMappingDetail, ResolvedMappingRow } from '../../../core/models/company-mapping.model';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ValuePromptDialogComponent } from '../../../shared/components/key-value-editor/value-prompt-dialog.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /**
  * Company Mapping detail screen: shows one Company's instance of an Interface's Mapping
@@ -24,6 +25,7 @@ import { ValuePromptDialogComponent } from '../../../shared/components/key-value
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompanyMappingDetailComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly companyService = inject(CompanyService);

@@ -7,14 +7,18 @@
           <mat-icon>arrow_back</mat-icon>
           Back
         </button>
-        <button mat-stroked-button color="primary" [routerLink]="['/mandators', mandatorId, 'edit']">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
-        <button mat-stroked-button color="warn" (click)="onDeleteMandator()">
-          <mat-icon>delete</mat-icon>
-          Delete
-        </button>
+        @if (profile.can('MANDATORS_COMPANIES', 'write')) {
+          <button mat-stroked-button color="primary" [routerLink]="['/mandators', mandatorId, 'edit']">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+        }
+        @if (profile.can('MANDATORS_COMPANIES', 'delete')) {
+          <button mat-stroked-button color="warn" (click)="onDeleteMandator()">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        }
       </div>
     </div>
 
@@ -35,7 +39,9 @@
       <h2 class="card-section-title">Additional Data</h2>
       <app-key-value-editor
         [rows]="additionalData()"
-        [allowAdd]="true"
+        [allowAdd]="profile.can('MANDATORS_COMPANIES', 'write')"
+        [allowEdit]="profile.can('MANDATORS_COMPANIES', 'write')"
+        [allowDelete]="profile.can('MANDATORS_COMPANIES', 'delete')"
         (add)="onAdditionalDataAdd($event)"
         (delete)="onAdditionalDataDelete($event)"
       ></app-key-value-editor>
@@ -44,10 +50,12 @@
     <div class="card">
       <div class="page-header">
         <h2 class="card-section-title">Companies</h2>
-        <button mat-flat-button color="primary" [routerLink]="['/mandators', mandatorId, 'companies', 'new']">
-          <mat-icon>add</mat-icon>
-          New
-        </button>
+        @if (profile.can('MANDATORS_COMPANIES', 'write')) {
+          <button mat-flat-button color="primary" [routerLink]="['/mandators', mandatorId, 'companies', 'new']">
+            <mat-icon>add</mat-icon>
+            New
+          </button>
+        }
       </div>
       <app-data-table
         [columns]="companyColumns"

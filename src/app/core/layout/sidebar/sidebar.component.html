@@ -15,4 +15,39 @@
     <mat-icon>business</mat-icon>
     <span>Mandators</span>
   </a>
+
+  @if (profile.user(); as user) {
+    <div class="nav-section-label profile-label">PROFILE</div>
+
+    <div class="profile-box">
+      <div class="profile-name">{{ user.name || 'Bitrix user' }}</div>
+      @if (user.email) {
+        <div class="profile-email">{{ user.email }}</div>
+      }
+
+      <div class="profile-rights">
+        @for (permission of user.permissions; track permission.level) {
+          <div class="rights-row">
+            <span class="rights-label">{{ levelLabels[permission.level] }}</span>
+            <span class="rights-icons">
+              @if (permission.read) {
+                <mat-icon title="Read">visibility</mat-icon>
+              }
+              @if (permission.write) {
+                <mat-icon title="Write">edit</mat-icon>
+              }
+              @if (permission.delete) {
+                <mat-icon title="Delete">delete</mat-icon>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <button type="button" class="nav-link logout-link" (click)="auth.logout()">
+    <mat-icon>logout</mat-icon>
+    <span>Logout</span>
+  </button>
 </nav>

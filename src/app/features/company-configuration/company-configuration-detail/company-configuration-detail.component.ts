@@ -8,6 +8,7 @@ import { CompanyConfigurationService } from '../../../core/services/company-conf
 import { CompanyConfigurationDetail, ConfigSourceLevel, ResolvedConfigEntry } from '../../../core/models/company-configuration.model';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ValuePromptDialogComponent } from '../../../shared/components/key-value-editor/value-prompt-dialog.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /** Caption shown under an entry's effective value for each non-override resolution level. */
 const SOURCE_LEVEL_CAPTIONS: Partial<Record<ConfigSourceLevel, string>> = {
@@ -33,6 +34,7 @@ const SOURCE_LEVEL_CAPTIONS: Partial<Record<ConfigSourceLevel, string>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompanyConfigurationDetailComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly companyService = inject(CompanyService);

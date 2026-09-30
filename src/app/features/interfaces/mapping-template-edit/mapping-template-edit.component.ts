@@ -10,6 +10,7 @@ import { catchError, of } from 'rxjs';
 import { InterfaceService } from '../../../core/services/interface.service';
 import { MappingTemplateService } from '../../../core/services/mapping-template.service';
 import { MappingTemplateRow, MappingTemplateSection, MappingTemplateUpsertRequest } from '../../../core/models/mapping-template.model';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /** Typed controls for a single Mapping Template row form. */
 interface MappingRowFormControls {
@@ -43,6 +44,7 @@ type MappingSectionForm = FormGroup<MappingSectionFormControls>;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MappingTemplateEditComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -69,7 +71,10 @@ export class MappingTemplateEditComponent {
       )
       .subscribe((template) => {
         template?.sections.forEach((section) => this.sections.push(this.buildSectionForm(section)));
-        if (this.sections.length === 0) {
+        if (!this.profile.can('INTERFACES_TEMPLATES', 'write')) {
+          // Readers may look at the template, not change it (the backend rejects changes anyway).
+          this.sections.disable();
+        } else if (this.sections.length === 0) {
           this.addSection();
         }
       });

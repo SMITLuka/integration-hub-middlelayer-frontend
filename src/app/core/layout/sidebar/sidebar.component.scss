@@ -5,8 +5,13 @@ $accent-light: #a4a6cf;
 $bg-mid: #cacbe3;
 $white: #ffffff;
 
+:host {
+  display: flex;
+  flex-shrink: 0;
+}
+
 .ih-sidebar {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
   background: $white;
   border-right: 1px solid $bg-mid;
@@ -53,4 +58,65 @@ $white: #ffffff;
     color: $primary;
     font-weight: 700;
   }
+}
+
+.profile-label {
+  margin-top: 20px;
+}
+
+.profile-box {
+  border: 1px solid $bg-mid;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 0 4px 8px;
+}
+
+.profile-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: $primary;
+}
+
+.profile-email {
+  font-size: 11px;
+  color: $primary-light;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.profile-rights {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rights-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: $primary-mid;
+}
+
+.rights-icons {
+  display: flex;
+  gap: 2px;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+    color: $primary-light;
+  }
+}
+
+.logout-link {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
 }

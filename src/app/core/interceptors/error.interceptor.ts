@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
 import { ErrorResponse } from '../models/api-error.model';
+import { ProfileService } from '../auth/profile.service';
 
 /**
  * Set on a request's `HttpContext` to suppress the automatic error snackbar,
@@ -18,6 +19,7 @@ export const SUPPRESS_ERROR_TOAST = new HttpContextToken<boolean>(() => false);
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(MatSnackBar);
+  const profile = inject(ProfileService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -26,10 +28,17 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         const body = error.error as ErrorResponse | undefined;
         const description =
           body?.error?.description ??
-          (error.status === 403 ? 'Integration Hub is available to SM-IT intranet employees only.' : 'An unexpected error occurred.');
+          (error.status === 403 ? forbiddenMessage(profile) : 'An unexpected error occurred.');
         snackBar.open(description, 'Dismiss', { duration: 6000 });
       }
       return throwError(() => error);
     }),
   );
 };
+
+/** A loaded profile means the user is a signed-in employee, so a 403 is about the action, not about access at all. */
+function forbiddenMessage(profile: ProfileService): string {
+  return profile.user()
+    ? 'You do not have permission for this action.'
+    : 'Integration Hub is available to SM-IT intranet employees only.';
+}

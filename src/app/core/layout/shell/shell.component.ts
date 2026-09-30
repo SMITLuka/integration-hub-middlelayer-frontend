@@ -5,8 +5,8 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { FooterComponent } from '../footer/footer.component';
 
 /**
- * Composes the application's persistent chrome (header, sidebar, footer)
- * around the routed page content.
+ * Composes the application's persistent chrome around the routed page content:
+ * a full-height sidebar on the left, header, page and footer on the right.
  */
 @Component({
   selector: 'app-shell',

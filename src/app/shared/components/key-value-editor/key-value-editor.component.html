@@ -11,10 +11,12 @@
         </td>
         <td class="kv-actions">
           @if (row.caption) {
-            <button mat-icon-button (click)="onEditClick(row)" aria-label="Edit">
-              <mat-icon>edit</mat-icon>
-            </button>
-          } @else {
+            @if (allowEdit) {
+              <button mat-icon-button (click)="onEditClick(row)" aria-label="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
+          } @else if (allowDelete) {
             <button mat-icon-button color="warn" (click)="onDeleteClick(row)" aria-label="Delete">
               <mat-icon>delete</mat-icon>
             </button>

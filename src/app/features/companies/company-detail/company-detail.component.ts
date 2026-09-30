@@ -14,6 +14,7 @@ import { KeyValueChange, KeyValueEditorComponent, KeyValueRow } from '../../../s
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ActionMenuComponent, ActionMenuItem } from '../../../shared/components/action-menu/action-menu.component';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { ProfileService } from '../../../core/auth/profile.service';
 
 /**
  * Company detail screen: read-only fields, resolved Additional Data (own overrides vs.
@@ -29,6 +30,7 @@ import { DataTableColumn, DataTableComponent } from '../../../shared/components/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompanyDetailComponent {
+  protected readonly profile = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly companyService = inject(CompanyService);
@@ -124,14 +126,14 @@ export class CompanyDetailComponent {
   buildMappingActions(row: CompanyMappingSummary): ActionMenuItem[] {
     return [
       { label: 'View Details', action: () => this.router.navigate(['/companies', this.companyId, 'mappings', row.id]) },
-      { label: 'Delete', action: () => this.onDeleteMapping(row) },
+      ...(this.profile.can('CONFIGURATIONS_MAPPINGS', 'delete') ? [{ label: 'Delete', action: () => this.onDeleteMapping(row) }] : []),
     ];
   }
 
   buildConfigurationActions(row: CompanyConfigurationSummary): ActionMenuItem[] {
     return [
       { label: 'View Details', action: () => this.router.navigate(['/companies', this.companyId, 'configurations', row.id]) },
-      { label: 'Delete', action: () => this.onDeleteConfiguration(row) },
+      ...(this.profile.can('CONFIGURATIONS_MAPPINGS', 'delete') ? [{ label: 'Delete', action: () => this.onDeleteConfiguration(row) }] : []),
     ];
   }
 

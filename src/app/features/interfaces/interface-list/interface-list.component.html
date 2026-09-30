@@ -1,10 +1,12 @@
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">Interfaces</h1>
-    <button mat-flat-button color="primary" routerLink="/interfaces/new">
-      <mat-icon>add</mat-icon>
-      New
-    </button>
+    @if (profile.can('INTERFACES_TEMPLATES', 'write')) {
+      <button mat-flat-button color="primary" routerLink="/interfaces/new">
+        <mat-icon>add</mat-icon>
+        New
+      </button>
+    }
   </div>
 
   <div class="card">
