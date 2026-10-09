@@ -11,7 +11,7 @@ describe('authInterceptor', () => {
 
   beforeEach(() => {
     auth = jasmine.createSpyObj<AuthService>('AuthService', ['getAccessToken', 'handleUnauthorized']);
-    auth.getAccessToken.and.resolveTo('the-token');
+    auth.getAccessToken.and.returnValue('the-token');
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -45,7 +45,7 @@ describe('authInterceptor', () => {
   }));
 
   it('sends the request without a token when there is no session', fakeAsync(() => {
-    auth.getAccessToken.and.resolveTo(null);
+    auth.getAccessToken.and.returnValue(null);
     http.get('/mandators').subscribe();
     tick();
 
@@ -72,7 +72,7 @@ describe('authInterceptor', () => {
     expect(auth.handleUnauthorized).toHaveBeenCalled();
   }));
 
-  it('does not treat 403 (logged in, but not an intranet employee) as a lost session', fakeAsync(() => {
+  it('does not treat 403 (logged in, but no Integration Hub rights in SSO) as a lost session', fakeAsync(() => {
     http.get('/mandators').subscribe({ error: () => undefined });
     tick();
 

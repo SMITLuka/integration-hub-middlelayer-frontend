@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -30,8 +30,18 @@ export class ProfileService {
 
   readonly user = signal<CurrentUser | null>(null);
 
+  /** The backend refused /me: signed in with SSO, but none of the user's SSO roles grants Integration Hub. */
+  readonly noAccess = signal(false);
+
   async load(): Promise<void> {
-    this.user.set(await firstValueFrom(this.http.get<CurrentUser>('/me')));
+    try {
+      this.user.set(await firstValueFrom(this.http.get<CurrentUser>('/me')));
+    } catch (e) {
+      if (e instanceof HttpErrorResponse && e.status === 403) {
+        this.noAccess.set(true);
+      }
+      throw e;
+    }
   }
 
   /** False until the profile is loaded, so actions stay hidden rather than flash up and vanish. */

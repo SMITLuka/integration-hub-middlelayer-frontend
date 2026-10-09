@@ -1,30 +1,24 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-import { ProfileService } from './profile.service';
 
-/** Unsigned JWT with the given payload (base64url of UTF-8 JSON, like real tokens); the service only reads claims for display. */
+/** Unsigned JWT with the given payload (base64url of UTF-8 JSON, like real tokens); the service only reads iat/exp. */
 function fakeJwt(payload: Record<string, unknown>): string {
   const encode = (value: object) =>
     btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
-  return `${encode({ alg: 'RS256', typ: 'at+jwt' })}.${encode(payload)}.signature`;
+  return `${encode({ alg: 'RS256', typ: 'JWT' })}.${encode(payload)}.signature`;
 }
 
-function tokenResponse(body: Record<string, unknown>, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
-
-async function sha256Base64Url(value: string): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
-  return btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+/** A token as the SSO gateway issues it: valid for an hour from iat. */
+function ssoToken(iat = 1_700_000_000): string {
+  return fakeJwt({ sub: 'user-1', display_name: 'Luka Lozić', iat, exp: iat + 3600 });
 }
 
 describe('AuthService', () => {
+  const originalUrl = window.location.pathname + window.location.search + window.location.hash;
   let service: AuthService;
   let navigateTo: jasmine.Spy;
 
@@ -33,179 +27,176 @@ describe('AuthService', () => {
     navigateTo = spyOn(service, 'navigateTo');
   }
 
+  function storeToken(accessToken: string, expiresAt: number): void {
+    localStorage.setItem('ih.auth.token', JSON.stringify({ accessToken, expiresAt }));
+  }
+
   beforeEach(() => {
+    localStorage.clear();
     sessionStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({});
   });
 
-  afterEach(() => sessionStorage.clear());
+  afterEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.replaceState(null, '', originalUrl);
+  });
 
-  it('login redirects to the provider with PKCE S256 and a state it remembers', async () => {
+  it('login sends the user to the SSO portal, asking it to launch Integration Hub right away', () => {
     createService();
 
-    await service.login();
+    service.login();
 
     const url = new URL(navigateTo.calls.mostRecent().args[0]);
-    const pending = JSON.parse(sessionStorage.getItem('ih.auth.pendingLogin')!);
-    expect(url.origin + url.pathname).toBe(`${environment.authIssuer}/auth`);
-    expect(url.searchParams.get('client_id')).toBe(environment.authClientId);
-    expect(url.searchParams.get('response_type')).toBe('code');
-    expect(url.searchParams.get('redirect_uri')).toBe(`${window.location.origin}/`);
-    expect(url.searchParams.get('scope')).toBe('openid integration-hub');
-    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
-    expect(url.searchParams.get('state')).toBe(pending.state);
-    expect(url.searchParams.get('code_challenge')).toBe(await sha256Base64Url(pending.verifier));
+    expect(url.origin + url.pathname).toBe(`${environment.ssoUrl}/`);
+    expect(url.searchParams.get('launch')).toBe(environment.ssoAppKey);
+    expect(url.searchParams.get('auto')).toBe('1');
+    expect(sessionStorage.getItem('ih.auth.returnUrl')).toBe(originalUrl);
+    // Replaces the history entry, so Back from Integration Hub does not land on the auto-launching portal.
+    expect(navigateTo.calls.mostRecent().args[1]).toEqual({ replace: true });
   });
 
-  it('completeLogin exchanges the code with the PKCE verifier and stores the session', async () => {
+  it('coming back from the portal without a token right after a login shows an error instead of looping', async () => {
     createService();
-    sessionStorage.setItem('ih.auth.pendingLogin', JSON.stringify({ verifier: 'the-verifier', state: 'the-state', returnUrl: '/mandators' }));
-    const accessToken = fakeJwt({ name: 'Luka Lozić' });
-    const fetchSpy = spyOn(window, 'fetch').and.resolveTo(tokenResponse({ access_token: accessToken, refresh_token: 'rt', expires_in: 3600 }));
-    const replaceState = spyOn(window.history, 'replaceState');
-
-    await service.completeLogin(new URLSearchParams({ code: 'the-code', state: 'the-state' }));
-
-    const [url, init] = fetchSpy.calls.mostRecent().args as [string, RequestInit];
-    const body = init.body as URLSearchParams;
-    expect(url).toBe(`${environment.authIssuer}/token`);
-    expect(body.get('grant_type')).toBe('authorization_code');
-    expect(body.get('code')).toBe('the-code');
-    expect(body.get('code_verifier')).toBe('the-verifier');
-    expect(body.get('client_id')).toBe(environment.authClientId);
-    expect(await service.getAccessToken()).toBe(accessToken);
-    expect(service.error()).toBeNull();
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/mandators');
-    expect(Number(sessionStorage.getItem('ih.auth.lastLoginAt'))).toBeGreaterThan(0);
-    expect(sessionStorage.getItem('ih.auth.pendingLogin')).toBeNull();
-  });
-
-  it('completeLogin rejects a callback whose state was not issued by this tab', async () => {
-    createService();
-    sessionStorage.setItem('ih.auth.pendingLogin', JSON.stringify({ verifier: 'v', state: 'expected', returnUrl: '/' }));
-    const fetchSpy = spyOn(window, 'fetch');
-
-    await service.completeLogin(new URLSearchParams({ code: 'c', state: 'forged' }));
-
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(service.error()).toContain('does not match');
-    expect(await service.getAccessToken()).toBeNull();
-  });
-
-  it('completeLogin shows the provider error instead of retrying', async () => {
-    createService();
-
-    await service.completeLogin(new URLSearchParams({ error: 'access_denied', error_description: 'User cancelled' }));
-
-    expect(service.error()).toBe('User cancelled');
-    expect(navigateTo).not.toHaveBeenCalled();
-  });
-
-  it('getAccessToken refreshes a token that is about to expire and keeps the refresh token', async () => {
-    sessionStorage.setItem('ih.auth.tokens', JSON.stringify({ accessToken: 'old', refreshToken: 'rt', expiresAt: Date.now() + 10_000 }));
-    createService();
-    const fetchSpy = spyOn(window, 'fetch').and.resolveTo(tokenResponse({ access_token: 'new', expires_in: 3600 }));
-
-    const [first, second] = await Promise.all([service.getAccessToken(), service.getAccessToken()]);
-
-    expect(first).toBe('new');
-    expect(second).toBe('new');
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect((fetchSpy.calls.mostRecent().args[1] as RequestInit).body!.toString()).toContain('grant_type=refresh_token');
-    expect(JSON.parse(sessionStorage.getItem('ih.auth.tokens')!).refreshToken).toBe('rt');
-  });
-
-  it('reloads the rights after a token refresh (workgroup membership may have changed)', async () => {
-    sessionStorage.setItem('ih.auth.tokens', JSON.stringify({ accessToken: 'old', refreshToken: 'rt', expiresAt: Date.now() + 10_000 }));
-    createService();
-    spyOn(window, 'fetch').and.resolveTo(tokenResponse({ access_token: 'new', expires_in: 3600 }));
-    const load = spyOn(TestBed.inject(ProfileService), 'load').and.resolveTo();
-
-    await service.getAccessToken();
-
-    expect(load).toHaveBeenCalled();
-  });
-
-  it('getAccessToken returns null and clears the session when the refresh fails', async () => {
-    sessionStorage.setItem('ih.auth.tokens', JSON.stringify({ accessToken: 'old', refreshToken: 'rt', expiresAt: Date.now() - 1 }));
-    createService();
-    spyOn(window, 'fetch').and.resolveTo(tokenResponse({ error: 'invalid_grant' }, 400));
-
-    expect(await service.getAccessToken()).toBeNull();
-    expect(sessionStorage.getItem('ih.auth.tokens')).toBeNull();
-  });
-
-  it('logout only revokes our refresh token and never ends the provider session (shared with Claude)', async () => {
-    sessionStorage.setItem('ih.auth.tokens', JSON.stringify({ accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 3_600_000 }));
-    createService();
-    const fetchSpy = spyOn(window, 'fetch').and.resolveTo(new Response(null, { status: 200 }));
-
-    await service.logout();
-
-    const [url, init] = fetchSpy.calls.mostRecent().args as [string, RequestInit];
-    const body = init.body as URLSearchParams;
-    expect(url).toBe(`${environment.authIssuer}/token/revocation`);
-    expect(body.get('token')).toBe('r');
-    expect(body.get('client_id')).toBe(environment.authClientId);
-    expect(navigateTo).not.toHaveBeenCalled();
-    expect(service.signedOut()).toBeTrue();
-    expect(await service.getAccessToken()).toBeNull();
-  });
-
-  it('after logout the app stays signed out instead of logging straight back in', async () => {
-    sessionStorage.setItem('ih.auth.signedOut', '1');
-    createService();
+    sessionStorage.setItem('ih.auth.loginStartedAt', String(Date.now()));
 
     await service.init();
 
-    expect(service.signedOut()).toBeTrue();
     expect(navigateTo).not.toHaveBeenCalled();
+    expect(service.error()).toContain('did not log you in');
   });
 
-  it('logging in again clears the signed-out state', async () => {
-    sessionStorage.setItem('ih.auth.signedOut', '1');
+  it('a login started long ago does not block a new one', () => {
     createService();
+    sessionStorage.setItem('ih.auth.loginStartedAt', String(Date.now() - 600_000));
 
-    await service.login();
+    void service.init();
 
-    expect(sessionStorage.getItem('ih.auth.signedOut')).toBeNull();
-    expect(navigateTo).toHaveBeenCalled();
+    expect(navigateTo).toHaveBeenCalledTimes(1);
+    expect(service.error()).toBeNull();
   });
 
-  it('starts only one login when several requests fail at once', async () => {
+  it('follows the token other tabs receive or drop', () => {
     createService();
 
-    await Promise.all([service.login(), service.login(), service.login()]);
+    storeToken('from-other-tab', Date.now() + 600_000);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'ih.auth.token' }));
+    expect(service.getAccessToken()).toBe('from-other-tab');
+
+    localStorage.removeItem('ih.auth.token');
+    window.dispatchEvent(new StorageEvent('storage', { key: 'ih.auth.token' }));
+    expect(service.getAccessToken()).toBeNull();
+  });
+
+  it('starts only one login when several requests fail at once', () => {
+    createService();
+
+    service.login();
+    service.login();
 
     expect(navigateTo).toHaveBeenCalledTimes(1);
   });
 
-  it('forceReauth asks the provider to run the Bitrix login again', async () => {
+  it('init takes over the token from the portal, removes it from the URL and returns to the original page', async () => {
     createService();
+    const token = ssoToken();
+    sessionStorage.setItem('ih.auth.returnUrl', '/mandators?search=abc');
+    sessionStorage.setItem('ih.auth.loginStartedAt', String(Date.now()));
+    window.history.replaceState(null, '', `/?token=${token}`);
 
-    await service.login({ forceReauth: true });
+    await service.init();
 
-    expect(new URL(navigateTo.calls.mostRecent().args[0]).searchParams.get('prompt')).toBe('login');
+    expect(service.getAccessToken()).toBe(token);
+    expect(window.location.pathname + window.location.search).toBe('/mandators?search=abc');
+    expect(sessionStorage.getItem('ih.auth.returnUrl')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('ih.auth.token')!).accessToken).toBe(token);
+    expect(sessionStorage.getItem('ih.auth.loginStartedAt')).toBeNull();
+    expect(navigateTo).not.toHaveBeenCalled();
   });
 
-  it('a 401 right after a successful login stops with an error instead of looping through logins', () => {
-    sessionStorage.setItem('ih.auth.lastLoginAt', String(Date.now() - 5_000));
+  it('init keeps the rest of the URL when there is no page to return to', async () => {
+    createService();
+    window.history.replaceState(null, '', `/interfaces?token=${ssoToken()}&tab=2`);
+
+    await service.init();
+
+    expect(window.location.pathname + window.location.search).toBe('/interfaces?tab=2');
+  });
+
+  it('counts the token lifetime from now, so a wrong browser clock does not expire it', async () => {
+    createService();
+    // iat/exp far in the past by the browser clock: lifetime is still one hour from receipt.
+    window.history.replaceState(null, '', `/?token=${ssoToken(1_000_000_000)}`);
+
+    await service.init();
+
+    const stored = JSON.parse(localStorage.getItem('ih.auth.token')!);
+    expect(stored.expiresAt - Date.now()).toBeGreaterThan(3_500_000);
+    expect(service.getAccessToken()).not.toBeNull();
+  });
+
+  it('treats an unreadable token from the portal as expired', async () => {
+    createService();
+    window.history.replaceState(null, '', '/?token=not-a-jwt');
+
+    await service.init();
+
+    expect(service.getAccessToken()).toBeNull();
+  });
+
+  it('init reuses a stored token that is still valid (e.g. from another tab)', async () => {
+    storeToken('stored-token', Date.now() + 600_000);
+    createService();
+
+    await service.init();
+
+    expect(service.getAccessToken()).toBe('stored-token');
+    expect(navigateTo).not.toHaveBeenCalled();
+  });
+
+  it('init sends the user to the portal when the stored token has (almost) expired', () => {
+    storeToken('old-token', Date.now() + 10_000);
+    createService();
+
+    void service.init();
+
+    expect(service.getAccessToken()).toBeNull();
+    expect(navigateTo).toHaveBeenCalledTimes(1);
+  });
+
+  it('a 401 right after a login stops with an error instead of looping through the portal', () => {
+    storeToken('rejected-token', Date.now() + 600_000);
+    sessionStorage.setItem('ih.auth.lastLoginAt', String(Date.now()));
     createService();
 
     service.handleUnauthorized();
 
-    expect(service.error()).toContain('did not accept your login');
+    expect(service.error()).toContain('did not accept');
+    expect(service.getAccessToken()).toBeNull();
     expect(navigateTo).not.toHaveBeenCalled();
   });
 
-  it('a 401 long after the login starts a new login', async () => {
+  it('a 401 long after the login fetches a new token from the portal', () => {
+    storeToken('expired-token', Date.now() + 600_000);
     sessionStorage.setItem('ih.auth.lastLoginAt', String(Date.now() - 3_600_000));
     createService();
 
     service.handleUnauthorized();
-    await new Promise((resolve) => setTimeout(resolve));
 
     expect(service.error()).toBeNull();
-    expect(navigateTo).toHaveBeenCalled();
+    expect(service.getAccessToken()).toBeNull();
+    expect(navigateTo).toHaveBeenCalledTimes(1);
+  });
+
+  it('logout forgets the token and returns to the portal without asking it to launch the app again', () => {
+    storeToken('the-token', Date.now() + 600_000);
+    createService();
+
+    service.logout();
+
+    expect(service.getAccessToken()).toBeNull();
+    expect(localStorage.getItem('ih.auth.token')).toBeNull();
+    expect(navigateTo).toHaveBeenCalledWith(`${environment.ssoUrl}/`);
   });
 });
