@@ -40,5 +40,23 @@ describe('ProfileService', () => {
     expect(service.can('INTERFACES_TEMPLATES', 'delete')).toBeFalse();
     expect(service.can('CONFIGURATIONS_MAPPINGS', 'write')).toBeTrue();
     expect(service.can('CONFIGURATIONS_MAPPINGS', 'delete')).toBeFalse();
+    expect(service.noAccess()).toBeFalse();
+  });
+
+  it('flags a 403 on /me as no Integration Hub access and rethrows it', async () => {
+    const loading = service.load();
+    httpTesting.expectOne('/me').flush(null, { status: 403, statusText: 'Forbidden' });
+
+    await expectAsync(loading).toBeRejected();
+    expect(service.noAccess()).toBeTrue();
+    expect(service.user()).toBeNull();
+  });
+
+  it('does not flag other failures as no access', async () => {
+    const loading = service.load();
+    httpTesting.expectOne('/me').flush(null, { status: 500, statusText: 'Server Error' });
+
+    await expectAsync(loading).toBeRejected();
+    expect(service.noAccess()).toBeFalse();
   });
 });

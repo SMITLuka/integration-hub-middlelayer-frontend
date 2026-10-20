@@ -1,14 +1,14 @@
 @if (auth.error(); as message) {
-  <div class="auth-message">
+  <div class="auth-message" role="alert">
     <h1>Login failed</h1>
     <p>{{ message }}</p>
-    <button mat-flat-button color="primary" (click)="auth.login({ forceReauth: true })">Log in again</button>
+    <a mat-flat-button color="primary" [href]="ssoUrl">Back to SSO portal</a>
   </div>
-} @else if (auth.signedOut()) {
+} @else if (profile.noAccess()) {
   <div class="auth-message">
-    <h1>You are signed out</h1>
-    <p>You have been signed out of Integration Hub.</p>
-    <button mat-flat-button color="primary" (click)="auth.login()">Log in</button>
+    <h1>No access</h1>
+    <p>None of your SSO roles grants access to Integration Hub. Please ask an SSO administrator for it.</p>
+    <a mat-flat-button color="primary" [href]="ssoUrl">Back to SSO portal</a>
   </div>
 } @else {
   <app-shell></app-shell>

@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <title>Integration Hub</title>
   <base href="/">
+  <!-- The SSO token arrives in the URL; it must never leak to other sites through the Referer header. -->
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">

@@ -16,14 +16,14 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor, apiBaseUrlInterceptor, errorInterceptor])),
     provideAnimationsAsync(),
-    // Nothing renders before the user is logged in with Bitrix (or a login error is known), and the
-    // user's rights are known, so the UI shows the right actions from the first paint.
+    // Nothing renders before the user is logged in through the SSO portal (or a login error is known),
+    // and the user's rights are known, so the UI shows the right actions from the first paint.
     provideAppInitializer(async () => {
       const auth = inject(AuthService);
       const profile = inject(ProfileService);
       await auth.init();
-      if (!auth.error() && !auth.signedOut()) {
-        // A failed load only hides actions; the request itself (401/403) is handled by the interceptors.
+      if (!auth.error()) {
+        // A failed load only hides actions (or, on 403, shows the no-access page); 401 is handled by the interceptors.
         await profile.load().catch(() => undefined);
       }
     }),

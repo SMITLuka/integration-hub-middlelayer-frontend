@@ -1,283 +1,179 @@
-import { Injectable, Injector, inject, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { ProfileService } from './profile.service';
 
-interface StoredTokens {
+interface StoredToken {
   accessToken: string;
-  refreshToken: string | null;
   expiresAt: number;
 }
 
-interface PendingLogin {
-  verifier: string;
-  state: string;
-  returnUrl: string;
-}
-
-interface TokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-}
-
-const TOKENS_KEY = 'ih.auth.tokens';
-const PENDING_LOGIN_KEY = 'ih.auth.pendingLogin';
-const SIGNED_OUT_KEY = 'ih.auth.signedOut';
+const TOKEN_KEY = 'ih.auth.token';
+const RETURN_URL_KEY = 'ih.auth.returnUrl';
 const LAST_LOGIN_KEY = 'ih.auth.lastLoginAt';
-const REFRESH_MARGIN_MS = 60_000;
-/** A 401 this soon after a successful login means the backend rejects our tokens, not that they expired. */
+const LOGIN_STARTED_KEY = 'ih.auth.loginStartedAt';
+/** Treat the token as expired a little early, so a request never leaves with one that dies on the way. */
+const EXPIRY_MARGIN_MS = 30_000;
+/**
+ * A 401 this soon after a login means the backend rejects our tokens, not that they expired; coming back
+ * from the portal this soon without a token means the portal did not issue one. Both would otherwise
+ * bounce between the portal and the app forever.
+ */
 const FRESH_LOGIN_WINDOW_MS = 30_000;
 
 /**
- * Bitrix24 login via the Bitrix MCP server, which acts as OpenID Connect provider:
- * Authorization Code flow with PKCE (S256) and a `state` check, as required for a public
- * browser client without a secret. The resulting access token is a JWT for our backend;
- * the backend verifies it (signature, issuer, audience, expiry) and enforces intranet-only
- * access, so this service only runs the protocol and keeps the tokens.
+ * Login through the SMIT SSO portal. Integration Hub is opened from the portal, which redirects
+ * here with `?token=<JWT>` issued for this app; the backend verifies that token (signature, expiry,
+ * app) and decides from the user's SSO roles what they may do, so this service only takes the
+ * token over and keeps it.
  *
- * Tokens live in sessionStorage (per tab, gone when the tab closes); a new tab signs in
- * again silently through the provider's own session.
+ * The token cannot be refreshed: when it expires (after an hour) the user is sent back to the portal
+ * with `auto=1`, which launches Integration Hub again right away if the SSO session is still valid,
+ * otherwise after the SSO login. It is kept in localStorage and shared with the other tabs, so they
+ * reuse it instead of each going through the portal, and a logout ends them all.
  *
- * Logout is deliberately local (revoke our own refresh token, forget the tokens): the provider's
- * session is shared with the employee's Claude Bitrix connector, and ending it there would
- * disconnect Claude as well.
+ * Logout only forgets the token and returns to the portal; the SSO session belongs to the portal.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly injector = inject(Injector);
-  private readonly tokens = signal<StoredTokens | null>(readJson<StoredTokens>(TOKENS_KEY));
-  private refreshing: Promise<string | null> | null = null;
+  private readonly token = signal<StoredToken | null>(readToken());
   private loginStarted = false;
 
-  /** Set when a login attempt failed; the app shows it instead of retrying in a redirect loop. */
+  /** Set when a fresh login fails; the app shows it instead of retrying in a redirect loop. */
   readonly error = signal<string | null>(null);
 
-  /** True after logout: the app shows a "signed out" page instead of logging straight back in. */
-  readonly signedOut = signal(sessionStorage.getItem(SIGNED_OUT_KEY) !== null);
-
-  private get redirectUri(): string {
-    return `${window.location.origin}/`;
+  constructor() {
+    // Picks up a token another tab received, and drops ours when another tab logged out.
+    window.addEventListener('storage', (event) => {
+      if (event.key === TOKEN_KEY || event.key === null) {
+        this.token.set(readToken());
+      }
+    });
   }
 
   /**
-   * Runs before the app renders: finishes a login coming back from the provider, reuses a
-   * stored session, or starts a login. The returned promise stays pending while the browser
-   * navigates to the provider, so no page flashes up unauthenticated.
+   * Runs before the app renders: takes over a token the portal just handed us, reuses a stored one,
+   * or sends the user to the portal. The returned promise stays pending while the browser navigates
+   * away, so no page flashes up unauthenticated.
    */
   async init(): Promise<void> {
-    const params = new URLSearchParams(window.location.search);
-    // The provider only ever redirects to the app root, always with our state.
-    if (window.location.pathname === '/' && params.has('state') && (params.has('code') || params.has('error'))) {
-      await this.completeLogin(params);
+    const url = new URL(window.location.href);
+    const tokenFromPortal = url.searchParams.get('token');
+    if (tokenFromPortal) {
+      this.store(tokenFromPortal);
+      sessionStorage.setItem(LAST_LOGIN_KEY, String(Date.now()));
+      sessionStorage.removeItem(LOGIN_STARTED_KEY);
+      // The token must not stay in the address bar or history; also restores the page the user started on.
+      url.searchParams.delete('token');
+      const returnUrl = sessionStorage.getItem(RETURN_URL_KEY);
+      sessionStorage.removeItem(RETURN_URL_KEY);
+      window.history.replaceState(null, '', returnUrl || url.pathname + url.search + url.hash);
       return;
     }
-    if (this.signedOut()) {
+    if (this.getAccessToken()) {
       return;
     }
-    if (await this.getAccessToken()) {
+    if (isRecent(sessionStorage.getItem(LOGIN_STARTED_KEY))) {
+      sessionStorage.removeItem(LOGIN_STARTED_KEY);
+      this.error.set('The SSO portal did not log you in to Integration Hub. Please open it from the portal again.');
       return;
     }
-    await this.login();
+    this.login();
     return new Promise<void>(() => undefined);
   }
 
-  /**
-   * Sends the browser to the Bitrix login, remembering the current page to return to.
-   * `forceReauth` makes the provider run the Bitrix login again even if its own session is still
-   * valid; used for "Log in again" after a failure, because the failure may be a stale Bitrix token
-   * that only a fresh Bitrix login replaces.
-   */
-  async login(options: { forceReauth?: boolean } = {}): Promise<void> {
-    // Several parallel 401s must not start several logins, each overwriting the pending state.
+  /** Sends the browser to the SSO portal for a new token, remembering the current page to return to. */
+  login(): void {
+    // Several parallel 401s must not start several navigations.
     if (this.loginStarted) {
       return;
     }
     this.loginStarted = true;
-    sessionStorage.removeItem(SIGNED_OUT_KEY);
-    const verifier = randomString();
-    const state = randomString();
-    const pending: PendingLogin = {
-      verifier,
-      state,
-      returnUrl: window.location.pathname + window.location.search + window.location.hash,
-    };
-    sessionStorage.setItem(PENDING_LOGIN_KEY, JSON.stringify(pending));
-
-    const url = new URL(`${environment.authIssuer}/auth`);
-    url.searchParams.set('client_id', environment.authClientId);
-    url.searchParams.set('response_type', 'code');
-    url.searchParams.set('redirect_uri', this.redirectUri);
-    url.searchParams.set('scope', 'openid integration-hub');
-    url.searchParams.set('code_challenge', await sha256Base64Url(verifier));
-    url.searchParams.set('code_challenge_method', 'S256');
-    url.searchParams.set('state', state);
-    if (options.forceReauth) {
-      url.searchParams.set('prompt', 'login');
-    }
-    this.navigateTo(url.toString());
+    sessionStorage.setItem(RETURN_URL_KEY, window.location.pathname + window.location.search + window.location.hash);
+    sessionStorage.setItem(LOGIN_STARTED_KEY, String(Date.now()));
+    const url = new URL(`${environment.ssoUrl}/`);
+    url.searchParams.set('launch', environment.ssoAppKey);
+    url.searchParams.set('auto', '1');
+    // Replace, not assign: the portal hop would otherwise stay in the history, and going Back to it
+    // would launch Integration Hub again instead of leaving it.
+    this.navigateTo(url.toString(), { replace: true });
   }
 
-  /** Handles the provider's redirect back to the app (`?code=...&state=...` or `?error=...`). */
-  async completeLogin(params: URLSearchParams): Promise<void> {
-    const pending = readJson<PendingLogin>(PENDING_LOGIN_KEY);
-    sessionStorage.removeItem(PENDING_LOGIN_KEY);
-    try {
-      if (params.has('error')) {
-        throw new Error(params.get('error_description') ?? params.get('error') ?? 'Login failed');
-      }
-      // The state must match the one this tab generated; otherwise the callback was not started by us (CSRF).
-      if (!pending || params.get('state') !== pending.state) {
-        throw new Error('Login response does not match the login that was started. Please log in again.');
-      }
-      this.store(
-        await this.requestToken({
-          grant_type: 'authorization_code',
-          code: params.get('code') ?? '',
-          redirect_uri: this.redirectUri,
-          client_id: environment.authClientId,
-          code_verifier: pending.verifier,
-        }),
-      );
-      sessionStorage.setItem(LAST_LOGIN_KEY, String(Date.now()));
-      // Removes code and state from the address bar and restores the page the user started on.
-      window.history.replaceState(null, '', pending.returnUrl || '/');
-    } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'Login failed');
-    }
-  }
-
-  /** A valid access token, refreshed shortly before it expires; `null` when the user has to log in again. */
-  async getAccessToken(): Promise<string | null> {
-    const tokens = this.tokens();
-    if (!tokens) {
+  /** The access token while it is still valid; `null` when the user has to go through the portal again. */
+  getAccessToken(): string | null {
+    const token = this.token();
+    if (!token || token.expiresAt - Date.now() <= EXPIRY_MARGIN_MS) {
       return null;
     }
-    if (tokens.expiresAt - Date.now() > REFRESH_MARGIN_MS) {
-      return tokens.accessToken;
-    }
-    if (!tokens.refreshToken) {
-      this.clear();
-      return null;
-    }
-    // Parallel API calls share one refresh request.
-    this.refreshing ??= this.refresh(tokens.refreshToken).finally(() => (this.refreshing = null));
-    return this.refreshing;
+    return token.accessToken;
   }
 
   /**
-   * Called on a 401 from the backend. Normally the session expired or was revoked, so the user logs
-   * in again. Right after a successful login, though, a 401 means the backend rejects our tokens
-   * (misconfiguration): logging in again would succeed silently and loop forever, so stop and say so.
+   * Called on a 401 from the backend. Normally the token expired, so the user gets a new one from the
+   * portal. Right after a login, though, a 401 means the backend rejects the portal's tokens
+   * (misconfiguration): fetching another would succeed and loop forever, so stop and say so.
    */
   handleUnauthorized(): void {
-    const lastLoginAt = Number(sessionStorage.getItem(LAST_LOGIN_KEY) ?? 0);
-    if (Date.now() - lastLoginAt < FRESH_LOGIN_WINDOW_MS) {
-      this.clear();
-      this.error.set('The Integration Hub server did not accept your login. Please contact the administrator.');
+    this.clear();
+    if (isRecent(sessionStorage.getItem(LAST_LOGIN_KEY))) {
+      this.error.set('The Integration Hub server did not accept your SSO login. Please contact the administrator.');
       return;
     }
-    void this.login();
+    this.login();
   }
 
-  /**
-   * Logs out of Integration Hub only: revokes our refresh token at the provider and forgets the
-   * tokens. The provider session is not ended because the employee's Claude connector shares it.
-   */
-  async logout(): Promise<void> {
-    const refreshToken = this.tokens()?.refreshToken;
+  /** Forgets the token (in every tab) and returns to the SSO portal. */
+  logout(): void {
     this.clear();
-    sessionStorage.setItem(SIGNED_OUT_KEY, '1');
-    this.signedOut.set(true);
-    if (refreshToken) {
-      try {
-        await fetch(`${environment.authIssuer}/token/revocation`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ token: refreshToken, token_type_hint: 'refresh_token', client_id: environment.authClientId }),
-        });
-      } catch {
-        // Best effort: the token is forgotten locally either way and expires on its own.
-      }
-    }
+    this.navigateTo(`${environment.ssoUrl}/`);
   }
 
   /** Separate so tests can observe navigation without leaving the test page. */
-  navigateTo(url: string): void {
-    window.location.assign(url);
-  }
-
-  private async refresh(refreshToken: string): Promise<string | null> {
-    let response: TokenResponse;
-    try {
-      response = await this.requestToken({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: environment.authClientId,
-      });
-    } catch {
-      this.clear();
-      return null;
+  navigateTo(url: string, options: { replace?: boolean } = {}): void {
+    if (options.replace) {
+      window.location.replace(url);
+    } else {
+      window.location.assign(url);
     }
-    // The provider does not always rotate refresh tokens; keep the current one if none is returned.
-    this.store({ ...response, refresh_token: response.refresh_token ?? refreshToken });
-    // The new token re-evaluates the Bitrix workgroups, so the rights shown in the UI may have changed.
-    // Looked up lazily: ProfileService depends on HttpClient, whose interceptors depend on this service.
-    // Deliberately outside the token handling above: a failed profile reload must never cost the session.
-    void this.injector.get(ProfileService).load().catch(() => undefined);
-    return response.access_token;
   }
 
-  // Plain fetch instead of HttpClient: token calls must not pass through the API interceptors.
-  private async requestToken(body: Record<string, string>): Promise<TokenResponse> {
-    const response = await fetch(`${environment.authIssuer}/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(body),
-    });
-    const json = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(json.error_description ?? json.error ?? `Token request failed (${response.status})`);
-    }
-    return json as TokenResponse;
-  }
-
-  private store(response: TokenResponse): void {
-    const tokens: StoredTokens = {
-      accessToken: response.access_token,
-      refreshToken: response.refresh_token ?? null,
-      expiresAt: Date.now() + response.expires_in * 1000,
-    };
-    sessionStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
-    this.tokens.set(tokens);
+  private store(accessToken: string): void {
+    const token: StoredToken = { accessToken, expiresAt: Date.now() + lifetimeMs(accessToken) };
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(token));
+    this.token.set(token);
   }
 
   private clear(): void {
-    sessionStorage.removeItem(TOKENS_KEY);
-    this.tokens.set(null);
+    localStorage.removeItem(TOKEN_KEY);
+    this.token.set(null);
   }
 }
 
-function readJson<T>(key: string): T | null {
+function isRecent(timestamp: string | null): boolean {
+  return Date.now() - Number(timestamp ?? 0) < FRESH_LOGIN_WINDOW_MS;
+}
+
+function readToken(): StoredToken | null {
   try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
+    const raw = localStorage.getItem(TOKEN_KEY);
+    return raw ? (JSON.parse(raw) as StoredToken) : null;
   } catch {
     return null;
   }
 }
 
-function base64Url(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-function randomString(): string {
-  return base64Url(crypto.getRandomValues(new Uint8Array(32)));
-}
-
-async function sha256Base64Url(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return base64Url(new Uint8Array(digest));
+/**
+ * How long the token lives, from its own iat/exp claims and counted from now, so a browser clock that
+ * is off does not make every token look expired. Not verified here: that is the backend's job.
+ * An unreadable token counts as already expired; the backend's 401 then shows the login error.
+ */
+function lifetimeMs(accessToken: string): number {
+  try {
+    const base64 = accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(base64)) as { iat?: unknown; exp?: unknown };
+    if (typeof payload.iat === 'number' && typeof payload.exp === 'number') {
+      return Math.max(0, (payload.exp - payload.iat) * 1000);
+    }
+  } catch {
+    // Falls through to "expired".
+  }
+  return 0;
 }
